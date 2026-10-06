@@ -4,7 +4,7 @@
 ## A thin, box-agnostic client and a browser front end for a fleet of Signal Processing (AI) boxes
 A set of independent Dockerized inference services that all speak one gRPC envelope standardized by the [European Platform for AI-on-Demand](http://aiod.eu).
 
-This website provides the python client while the registry of boxes is in [Visionist_Library](http://github.com/jpcosteira/VisionIST_Library). For "old timers" and increased productivity we include a [Matlab Client](http://github.com/jpcosteira/VisionIST_matlab) 
+This website provides the python client while the registry of boxes is in [Visionist_Library](http://github.com/jpcosteira/VisionIST_Library). For "old timers" and increased productivity we include a [Matlab Client](http://github.com/jpcosteira/VisionIST_matlab). 
 
 ```protobuf
 service PipelineService { rpc Process( Envelope ) returns ( Envelope ); }
