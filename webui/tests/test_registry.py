@@ -16,7 +16,7 @@ def reg():
 
 
 EXPECTED_IDS = {"clip", "tapnext", "lang_sam", "sbert", "vggt", "moge", "yolo",
-                "unimatch", "features", "opencv", "lightglue", "d4rt"}
+                "unimatch", "features", "opencv", "lightglue", "d4rt", "sfm"}
 
 
 def test_all_defs_load(reg):

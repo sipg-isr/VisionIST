@@ -15,6 +15,7 @@ import { Widget } from "../form/widgets";
 import type { FValue } from "../form/widgets";
 import { ErrorBox, Spinner, StatusChip, bytesShort, fmtNum } from "../ui";
 import { fetchTyped, flattenNumbers, inlineValues, isRef } from "../resolvers";
+import { SceneView } from "../viz/SceneView";
 import { JsonTree, RenderValue } from "../viz/JsonTree";
 import { DataTable } from "../viz/DataTable";
 import { ImageGrid } from "../viz/ImageGrid";
@@ -34,7 +35,7 @@ type View =
   | { kind: "res"; res: CallResult }
   | { kind: "err"; detail: Record<string, unknown> };
 
-interface HistItem {
+export interface HistItem {
   at: number;                 // Date.now()
   boxName: string;
   command: string | null;
@@ -56,7 +57,7 @@ function detailOf(e: unknown): Record<string, unknown> {
 
 
 /** upload ref "@tok" -> fetchable URL; pass through real URLs. */
-function fileUrl(ref: string): string {
+export function fileUrl(ref: string): string {
   return ref.startsWith("@") ? `/api/file/${ref.slice(1)}` : ref;
 }
 
@@ -651,7 +652,7 @@ function ResultView({
 
 // ------------------------------------------------------- def-driven block
 
-function ResultBlock({
+export function ResultBlock({
   rd, def, res, baseImages, history, current,
 }: {
   rd: BoxDef["results"][number];
@@ -814,6 +815,28 @@ function ResultBlock({
               ))
             : <div className="note">no file artifact for {rd.field}</div>}
         </div>
+      );
+    }
+    case "scene": {
+      // reconstruction view; params name the keys, read from the field when
+      // it is a dict (a pipeline's assembled scene), else from the response's
+      // top-level fields (a box returning points / cameras side by side)
+      const p = (rd.params ?? {}) as Record<string, unknown>;
+      const src = v && typeof v === "object" && !Array.isArray(v) && !isRef(v)
+        ? (v as Record<string, unknown>) : (res.fields ?? {});
+      const pick = (k: string): unknown => (typeof p[k] === "string" ? src[p[k] as string] : undefined);
+      return (
+        <SceneView
+          title={title}
+          points={pick("points")}
+          colors={pick("colors")}
+          cameras={pick("cameras")}
+          densePoints={pick("dense_points")}
+          denseColors={pick("dense_colors")}
+          denseFrames={pick("dense_frames")}
+          intrinsics={pick("intrinsics")}
+          imageSize={pick("image_size")}
+        />
       );
     }
     case "tracks_player":
