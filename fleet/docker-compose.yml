@@ -194,8 +194,10 @@ services:
       - WEBUI_HOST=0.0.0.0
       - WEBUI_PORT=8000
       - WEBUI_DATA_DIR=/data
+    extra_hosts:
+      - host.docker.internal:host-gateway
     volumes:
-      - ./data:/data
+      - ../data:/data
     depends_on:
       - clip
       - d4rt

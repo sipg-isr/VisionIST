@@ -1,11 +1,14 @@
+# docker build context trim (repo root)
 .git
-.github
-**/.DS_Store
-**/__pycache__
-**/*.py[cod]
-**/*.egg-info
 **/node_modules
-webui/web/dist
-notebooks
+**/__pycache__
+**/*.pyc
+webui/web/src
+webui/web/*.map
+build-logs
+data
+fleet/docker-compose.yml
 docs
-fleet
+tests
+webui/tests
+README.md

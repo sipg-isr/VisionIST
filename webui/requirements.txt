@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+grpcio
+protobuf
+numpy
+pydantic
+python-multipart
+pyyaml
+pillow
