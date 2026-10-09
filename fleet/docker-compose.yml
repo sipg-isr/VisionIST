@@ -13,7 +13,7 @@ name: visionist-fleet
 services:
   # CLIP image and text embeddings with their cross-modal similarity
   clip:
-    image: docker.io/sipgisr/visionist-clip:0.1.0
+    image: docker.io/sipgisr/visionist-clip
     container_name: visionist-clip
     ports: ["9061:8061"]
     environment: [ PORT=8061 ]
@@ -28,7 +28,7 @@ services:
 
   # OpenD4RT 4D reconstruction and tracking - 3D point tracks, point clouds and camera poses from a video  (~12 GB)
   d4rt:
-    image: docker.io/sipgisr/visionist-d4rt:0.1.0
+    image: docker.io/sipgisr/visionist-d4rt
     container_name: visionist-d4rt
     ports: ["9062:8061"]
     environment: [ PORT=8061 ]
@@ -43,7 +43,7 @@ services:
 
   # SIFT keypoints in the SIFT-Extractor layout: (2+128) x N, annotated JPEGs, MATLAB .mat
   features:
-    image: docker.io/sipgisr/visionist-features:0.1.0
+    image: docker.io/sipgisr/visionist-features
     container_name: visionist-features
     ports: ["9063:8061"]
     environment: [ PORT=8061 ]
@@ -51,7 +51,7 @@ services:
 
   # Text-guided segmentation with LangSAM: phrases in, masks out
   lang_sam:
-    image: docker.io/sipgisr/visionist-lang-sam:0.1.0
+    image: docker.io/sipgisr/visionist-lang-sam
     container_name: visionist-lang_sam
     ports: ["9064:8061"]
     environment: [ PORT=8061 ]
@@ -66,7 +66,7 @@ services:
 
   # SuperPoint/DISK features and LightGlue matching, pairwise or as a sliding-window stream
   lightglue:
-    image: docker.io/sipgisr/visionist-lightglue:0.1.0
+    image: docker.io/sipgisr/visionist-lightglue
     container_name: visionist-lightglue
     ports: ["9065:8061"]
     environment: [ PORT=8061 ]
@@ -81,7 +81,7 @@ services:
 
   # MoGe-3 monocular geometry: metric depth, point map, normals, intrinsics
   moge:
-    image: docker.io/sipgisr/visionist-moge:0.1.0
+    image: docker.io/sipgisr/visionist-moge
     container_name: visionist-moge
     ports: ["9066:8061"]
     environment: [ PORT=8061 ]
@@ -96,7 +96,7 @@ services:
 
   # Classic feature extraction and matching: SIFT/ORB via FLANN, or SuperPoint/DISK via LightGlue, plus a RANSAC fundamental matrix
   opencv:
-    image: docker.io/sipgisr/visionist-opencv:0.1.0
+    image: docker.io/sipgisr/visionist-opencv
     container_name: visionist-opencv
     ports: ["9067:8061"]
     environment: [ PORT=8061 ]
@@ -111,7 +111,7 @@ services:
 
   # Sentence-BERT text embeddings and their pairwise similarity
   sbert:
-    image: docker.io/sipgisr/visionist-sbert:0.1.0
+    image: docker.io/sipgisr/visionist-sbert
     container_name: visionist-sbert
     ports: ["9068:8061"]
     environment: [ PORT=8061 ]
@@ -126,7 +126,7 @@ services:
 
   # TAPNext point tracking with the Tomasi-Kanade observation matrix
   tapnext:
-    image: docker.io/sipgisr/visionist-tapnext:0.1.0
+    image: docker.io/sipgisr/visionist-tapnext
     container_name: visionist-tapnext
     ports: ["9069:8061"]
     environment: [ PORT=8061 ]
@@ -141,7 +141,7 @@ services:
 
   # Unified dense matching: optical flow, stereo disparity, and multi-view depth
   unimatch:
-    image: docker.io/sipgisr/visionist-unimatch:0.1.0
+    image: docker.io/sipgisr/visionist-unimatch
     container_name: visionist-unimatch
     ports: ["9070:8061"]
     environment: [ PORT=8061 ]
@@ -156,7 +156,7 @@ services:
 
   # VGGT multi-view 3D reconstruction: world points, per-view depth, camera poses, and a GLB  (~8 GB)
   vggt:
-    image: docker.io/sipgisr/visionist-vggt:0.1.0
+    image: docker.io/sipgisr/visionist-vggt
     container_name: visionist-vggt
     ports: ["9071:8061"]
     environment: [ PORT=8061 ]
@@ -171,7 +171,7 @@ services:
 
   # YOLO object detection with always-on tracking, on images or video
   yolo:
-    image: docker.io/sipgisr/visionist-yolo:0.1.0
+    image: docker.io/sipgisr/visionist-yolo
     container_name: visionist-yolo
     ports: ["9072:8061"]
     environment: [ PORT=8061 ]
