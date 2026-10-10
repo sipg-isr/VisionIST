@@ -1,9 +1,9 @@
 # VGGT box — 3D reconstruction from image sequences.
-# Authoritative request shape: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/vggt/README.md
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/vggt/README.md
 id: vggt
 name: "VGGT · 3D reconstruction"
 box_key: vggt
-docs: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/vggt/README.md
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/vggt/README.md
 note: >
   All frames must share height/width and be RGB. The box declares its
   payload encoding: torch tensors (decoded with full shape) plus the raw

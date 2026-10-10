@@ -1,9 +1,9 @@
 # TAPNext tracker — stateful, multi-session.
-# Authoritative request shape: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/tapnext/README.md
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/tapnext/README.md
 id: tapnext
 name: "TAPNext · point tracking"
 box_key: tapnext
-docs: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/tapnext/README.md
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/tapnext/README.md
 input_mosaic: false   # the tracks player already shows the input frames overlaid; the mosaic is redundant
 note: >
   Send one frame per call; the box accumulates state across calls within a

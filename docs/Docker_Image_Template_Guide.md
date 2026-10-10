@@ -7,7 +7,7 @@ doubt, read the closest existing box.
 ## Directory StructureTemplate
 
 ```
-/https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/my_service/
+/https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/my_service/
 ├── protos/               # Protocol buffer definitions
 │   ├── my_service.proto  # Your service definition
 │   └── aux.py            # Helper functions (wrap_value, unwrap_value)

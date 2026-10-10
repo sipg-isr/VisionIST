@@ -179,7 +179,7 @@ Reuse the existing fake-servicer harness in `fake_box_smoke.py`; no GPU needed.
   codec table above; default raw."
 - `visionist_client/README.md` → "Result object" / decode-order section: documented
   order is now *declared codec → (legacy auto)*; add the `codec.py` + examples.
-- `https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/lang_sam/README.md` → the client call can now rely on `res.results`
+- `https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/lang_sam/README.md` → the client call can now rely on `res.results`
   being a decoded list (drop the manual `zstd`/`pickle` unwrap, keep as example
   for remote/old images).
 - `docs/Architecture_Overview.md` conventions table → add row

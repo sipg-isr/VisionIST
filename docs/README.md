@@ -1,6 +1,6 @@
 # VisionIST — documentation
 
-> **Boxes live in [VisionIST_Library](https://github.com/jpcosteira/VisionIST_Library).**
+> **Boxes live in [VisionIST_Library](https://github.com/sipg-isr/VisionIST_Library).**
 > This repository keeps the client, the webui, these docs and a reference
 > fleet. Paths like `boxes/<name>/` below refer to that registry; images are
 > pulled from Docker Hub rather than built here.

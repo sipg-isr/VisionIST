@@ -1,9 +1,9 @@
 # Sentence-BERT box — stateless text embeddings.
-# Authoritative request shape: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/sbert/README.md
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/sbert/README.md
 id: sbert
 name: "Sentence-BERT · text embeddings"
 box_key: sbert
-docs: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/sbert/README.md
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/sbert/README.md
 
 inputs:
   - field: texts

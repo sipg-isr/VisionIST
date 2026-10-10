@@ -1,9 +1,9 @@
 # opencv box — classic feature extraction and matching.
-# Authoritative request shape: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/opencv/README.md
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/opencv/README.md
 id: opencv
 name: "OpenCV · SIFT/ORB matching (or SuperPoint/DISK via LightGlue)"
 box_key: opencv
-docs: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/opencv/README.md
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/opencv/README.md
 note: >
   One image returns keypoints and descriptors. Two images also return the
   RANSAC inlier matches (matches_inliers_a / _b, one point per row, the same

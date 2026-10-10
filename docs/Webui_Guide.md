@@ -173,7 +173,7 @@ Def-driven extras (generic, no box names in code):
     no matter the size. Inline `{kind:"array"}` values (already in the
     JSON) still get stats + head preview — that costs nothing. Other
     visualizers (overlay, matrix) fetch only what they must render.
-  - `{kind:"file", url, mime, size}` — https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/GLB/etc.
+  - `{kind:"file", url, mime, size}` — https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/GLB/etc.
     (sniffed: `glTF` → `model/gltf-binary`, JPEG/PNG/MP4)
   - everything else plain JSON (exotics → pickle + note).
 
@@ -204,7 +204,7 @@ Def-driven extras (generic, no box names in code):
   `TAPNEXT_SESSION_TTL` (default 1800 s) regardless.
 * lang_sam decoded item keys: `boxes / masks / scores / text_labels /
   mask_scores` (a live test caught an early `bbox` typo).
-* test asset: `https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/clip/test/dog.jpg`.
+* test asset: `https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/clip/test/dog.jpg`.
 
 ## 8. Next steps (open)
 

@@ -1,9 +1,9 @@
 # SfM box — depth-augmented structure-from-motion with missing data.
-# Authoritative request shape: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/sfm/README.md
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/sfm/README.md
 id: sfm
 name: "SfM · cameras + points from tracks and depth"
 box_key: sfm
-docs: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/sfm/README.md
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/sfm/README.md
 input_mosaic: false
 note: >
   Every input is an np.save (.npy) blob. Mode A: tracks (2F, P) pixel x/y

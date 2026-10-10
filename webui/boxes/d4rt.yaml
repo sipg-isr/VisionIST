@@ -1,9 +1,9 @@
 # d4rt box — 4D reconstruction and tracking from a video (Open-d4rt).
-# Authoritative request shape: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/d4rt/README.md
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/d4rt/README.md
 id: d4rt
 name: "D4RT · 3D point tracks, point clouds & cameras"
 box_key: d4rt
-docs: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/d4rt/README.md
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/d4rt/README.md
 note: >
   A feedforward video transformer. Send a video, or frames of identical
   size, and pick a command: track (3D positions of query pixels over time),

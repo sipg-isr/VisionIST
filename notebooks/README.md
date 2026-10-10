@@ -14,4 +14,4 @@ jupyter notebook boxes_walkthrough.ipynb
 ```
 
 Cells are outputs-cleared on purpose — re-run them top to bottom. The
-lightglue cells read test images from `https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/lightglue/test/`.
+lightglue cells read test images from `https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/lightglue/test/`.

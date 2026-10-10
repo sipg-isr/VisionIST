@@ -4,14 +4,14 @@
 ## A thin, box-agnostic client and a browser front end for a fleet of Signal Processing (AI) boxes
 A set of independent Dockerized inference services that all speak one gRPC envelope standardized by the [European Platform for AI-on-Demand](http://aiod.eu).
 
-This website provides the python client while the registry of boxes is in [Visionist_Library](http://github.com/jpcosteira/VisionIST_Library). For "old timers" and increased productivity we include a [Matlab Client](http://github.com/jpcosteira/VisionIST_matlab). 
+This website provides the python client while the registry of boxes is in [Visionist_Library](http://github.com/sipg-isr/VisionIST_Library). For "old timers" and increased productivity we include a [Matlab Client](http://github.com/sipg-isr/VisionIST_matlab). 
 
 ```protobuf
 service PipelineService { rpc Process( Envelope ) returns ( Envelope ); }
 ```
 
 > **The boxes themselves live in
-> [VisionIST_Library](https://github.com/jpcosteira/VisionIST_Library).**
+> [VisionIST_Library](https://github.com/sipg-isr/VisionIST_Library).**
 > That registry holds one directory per box — Dockerfile, service source,
 > manifest — and publishes the images to Docker Hub (`sipgisr/`). This repository
 > keeps the client, the webui, the documentation and a reference fleet
@@ -89,7 +89,7 @@ has gaps rather than renumbered boxes, and adding a box moves nothing.
 ## Key contracts
 
 - **Shared envelope** — one `pipeline.proto` for every box. It is maintained in
-  [VisionIST_Library/contract](https://github.com/jpcosteira/VisionIST_Library/tree/main/contract)
+  [VisionIST_Library/contract](https://github.com/sipg-isr/VisionIST_Library/tree/main/contract)
   and synced into each box from there.
 - **Config dispatch** — the request's `config_json` carries a section named
   after the box; `{"command": "reset"}` is accepted by every standard box.
@@ -113,7 +113,7 @@ Start at [docs/index.md](docs/index.md):
 ## Contributing
 
 A **new box** goes to
-[VisionIST_Library](https://github.com/jpcosteira/VisionIST_Library) — see its
+[VisionIST_Library](https://github.com/sipg-isr/VisionIST_Library) — see its
 CONTRIBUTING.md; `tools/new_box.py` there scaffolds one that already runs.
 
 Changes to the **client**, the **webui** or these **docs** belong here.

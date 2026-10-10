@@ -1,10 +1,10 @@
 # features box — SIFT keypoint extraction (port of the pivist/features CLI).
-# Authoritative request shape: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/features/README.md
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/features/README.md
 id: features
 name: "features · SIFT keypoints (.mat-compatible)"
 box_key: features
 input_mosaic: false   # redundant: the annotated result IS the input (with dots)
-docs: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/features/README.md
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/features/README.md
 note: >
   A gRPC port of the "SIFT Extractor" command-line tool: same detector,
   same output layout. Send one or more images and the box answers with

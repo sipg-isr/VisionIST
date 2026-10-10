@@ -1,9 +1,9 @@
 # LangSAM box — language-guided segmentation.
-# Authoritative request shape: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/lang_sam/README.md
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/lang_sam/README.md
 id: lang_sam
 name: "LangSAM · text segmentation"
 box_key: lang_sam
-docs: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/lang_sam/README.md
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/lang_sam/README.md
 note: >
   One output dict per input image (masks, bboxes, scores, …).  The legacy
   flat config shape is still accepted by the box; the namespaced one here is

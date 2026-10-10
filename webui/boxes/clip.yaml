@@ -1,9 +1,9 @@
 # CLIP box — stateless embeddings.
-# Authoritative request shape: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/clip/README.md
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/clip/README.md
 id: clip
 name: "CLIP · image & text embeddings"
 box_key: clip
-docs: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/clip/README.md
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/clip/README.md
 note: "At least one of images or texts per call; cross-modal similarity comes out as the similarity matrix."
 
 inputs:

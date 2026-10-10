@@ -1,9 +1,9 @@
 # UniMatch — dense geometric estimation (unified optical flow / stereo / depth).
-# Authoritative request shape: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/unimatch/README.md
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/unimatch/README.md
 id: unimatch
 name: "UniMatch · optical flow & stereo disparity"
 box_key: unimatch
-docs: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/unimatch/README.md
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/unimatch/README.md
 note: >
   Two-image dense estimation from one unified backbone.  Pick the command,
   then the matching checkpoint under `model`:

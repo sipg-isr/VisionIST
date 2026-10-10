@@ -1,9 +1,9 @@
 # lightglue box — SuperPoint/DISK features + LightGlue matching.
-# Authoritative request shape: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/lightglue/README.md
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/lightglue/README.md
 id: lightglue
 name: "LightGlue · SuperPoint/DISK matching"
 box_key: lightglue
-docs: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/lightglue/README.md
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/lightglue/README.md
 note: >
   Pairwise matching: send two images, get keypoints per image and the
   zero-based index pairs that LightGlue matched, with a confidence each.

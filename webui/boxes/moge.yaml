@@ -1,9 +1,9 @@
 # MoGe-3 box — monocular 3D geometry (depth / points / normals / intrinsics).
-# Authoritative request shape: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/moge/README.md
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/moge/README.md
 id: moge
 name: "MoGe · monocular 3D geometry"
 box_key: moge
-docs: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/moge/README.md
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/moge/README.md
 note: >
   One output dict per input image (OpenCV camera coordinates, z forward):
   metric point map, metric depth, surface normals, normalized intrinsics.

@@ -3,7 +3,7 @@
 A thin Python client for calling deployed AI **"boxes"** by `IP:port`.
 
 A *box* is one of the gRPC services in the
-[VisionIST Library](https://github.com/jpcosteira/VisionIST_Library) built to the
+[VisionIST Library](https://github.com/sipg-isr/VisionIST_Library) built to the
 shared
 
 ```protobuf

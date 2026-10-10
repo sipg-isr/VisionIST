@@ -1,10 +1,10 @@
 # YOLO box — object detection AND tracking on images and videos.
-# Authoritative request shape: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/yolo/README.md
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/yolo/README.md
 id: yolo
 name: "YOLO · detection + tracking (images & video)"
 box_key: yolo
 input_mosaic: false   # redundant: the annotated result IS the input (with boxes)
-docs: https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/yolo/README.md
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/yolo/README.md
 note: >
   Tracking is always on: every detection carries a stable track id for
   THIS console's session (the table has a track_id column, the annotated

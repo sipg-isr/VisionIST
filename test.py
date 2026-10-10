@@ -4,8 +4,8 @@ import pathlib
 
 #calling CLIP (image + text -> similarity)
 b = Visionist("localhost:9061")              # the box's address
-img = pathlib.Path("https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/clip/test/dog.jpg")
-car = pathlib.Path("https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/clip/test/car.jpg")
+img = pathlib.Path("https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/clip/test/dog.jpg")
+car = pathlib.Path("https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/clip/test/car.jpg")
 
 res = b.run(data={"images": [img], "texts": ["a dog","the ocean"]},
             config={"clip": {"command": "process", "parameters": {}}})     # config = the box's section: WHAT to do

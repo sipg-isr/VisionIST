@@ -45,8 +45,8 @@ Every box also ships a `test/test_*.py` smoke test you can point at a running
 box:
 
 ```bash
-python https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/lang_sam/test/test_lang_sam.py
-BOX_HOST=10.0.0.5:9061 python https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/lang_sam/test/test_lang_sam.py
+python https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/lang_sam/test/test_lang_sam.py
+BOX_HOST=10.0.0.5:9061 python https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/lang_sam/test/test_lang_sam.py
 ```
 
 ## 3. Build a box of your own

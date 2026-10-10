@@ -26,7 +26,7 @@ DEF = {
     "id": "sfm_video",
     "name": "SfM from video · lightglue + MoGe + sfm",
     "uses": ["lightglue", "moge", "sfm"],
-    "docs": "https://github.com/jpcosteira/VisionIST_Library/blob/main/boxes/sfm/README.md",
+    "docs": "https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/sfm/README.md",
     "note": (
         "Frames in time order (a video is sampled in the browser). lightglue "
         "tracks them (sliding-window stream), MoGe gives each frame a metric "
