@@ -17,9 +17,9 @@ Each row below is a full end-user request: (name, address, data, config).
 Swap a model behind a box, or add a new box, and this file does not change.
 """
 
-# Ports follow the generated reference fleet (fleet/docker-compose.yml),
-# which assigns them in box-name order. Regenerating with a different
-# selection changes them - fleet/data/fleet.json always has the truth.
+# Ports follow the generated reference fleet (fleet/docker-compose.yml).
+# Each box's port is permanent (the registry's ports.json), so a different
+# selection does not change them - fleet/data/fleet.json always has the truth.
 import pathlib
 import sys
 
@@ -44,12 +44,12 @@ FLEET = [
         {"clip":    {"command": "process", "parameters": {}}},
     ),
     (
-        "textemb",    "localhost:9068",
+        "textemb",    "localhost:9062",
         {"texts": ["a dog", "a car", "grass, sky, bark"]},
         {"sbert":   {"command": "encode",  "parameters": {}}},
     ),
     (
-        "tapnext",    "localhost:9069",
+        "tapnext",    "localhost:9063",
         {"images": [DOG, DOG, DOG]},
         {"tapnext": {"command": "track",   "parameters": {"grid_size": 30}}},
     ),
@@ -61,22 +61,22 @@ FLEET = [
                       "text_prompt": ["a dog"]}},
     ),
     (
-        "opencv",     "localhost:9067",
+        "opencv",     "localhost:9065",
         {"images": [DOG, CAR]},
         {"opencv":  {"command": "match",   "parameters": {}}},
     ),
     (
-        "vggt",       "localhost:9071",
+        "vggt",       "localhost:9066",
         {"images": list(VGGT_FRAMES)},
         {"vggt":    {"command": "reconstruct", "parameters": {"conf_threshold": 30}}},
     ),
     (
-        "moge",       "localhost:9066",
+        "moge",       "localhost:9067",
         {"images": [DOG]},
         {"moge":    {"command": "infer",   "parameters": {}}},
     ),
     (
-        "yolo",       "localhost:9072",
+        "yolo",       "localhost:9068",
         {"images": [DOG, CAR]},
         {"yolo":    {"command": "detect", "parameters": {"save_annotated": False}}},
     ),

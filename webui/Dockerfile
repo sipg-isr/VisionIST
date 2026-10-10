@@ -1,6 +1,6 @@
 # webui: FastAPI app + visionist client + the committed SPA (web/dist).
 # Build from the REPO ROOT (client/ and webui/ are siblings):
-#   docker build -f webui/Dockerfile -t sipgisr/visionist-webui:0.1.0 .
+#   docker build -f webui/Dockerfile -t sipgisr/visionist-webui:latest .
 # Runtime: fleet data dir is the /data volume (bind ./data); point the fleet
 # entries at the box addresses reachable from THIS container (host.docker.internal
 # for host-published ports, or compose service names on the same network).

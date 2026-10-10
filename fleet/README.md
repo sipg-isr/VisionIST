@@ -13,17 +13,20 @@ docker compose ps
 | Box | Config key | Runtime | Host port | What it does |
 |---|---|---|---|---|
 | `clip` | `clip` | gpu | 9061 | CLIP image and text embeddings with their cross-modal similarity |
-| `d4rt` | `d4rt` | gpu | 9062 | OpenD4RT 4D reconstruction and tracking - 3D point tracks, point clouds and camera poses from a video |
-| `features` | `features` | cpu | 9063 | SIFT keypoints in the SIFT-Extractor layout: (2+128) x N, annotated JPEGs, MATLAB .mat |
+| `d4rt` | `d4rt` | gpu | 9072 | OpenD4RT 4D reconstruction and tracking - 3D point tracks, point clouds and camera poses from a video |
+| `features` | `features` | cpu | 9071 | SIFT keypoints in the SIFT-Extractor layout: (2+128) x N, annotated JPEGs, MATLAB .mat |
 | `lang_sam` | `lang_sam` | gpu | 9064 | Text-guided segmentation with LangSAM: phrases in, masks out |
-| `lightglue` | `lightglue` | gpu-or-cpu | 9065 | SuperPoint/DISK features and LightGlue matching, pairwise or as a sliding-window stream |
-| `moge` | `moge` | cuda-only | 9066 | MoGe-3 monocular geometry: metric depth, point map, normals, intrinsics |
-| `opencv` | `opencv` | gpu-or-cpu | 9067 | Classic feature extraction and matching: SIFT/ORB via FLANN, or SuperPoint/DISK via LightGlue, plus a RANSAC fundamental matrix |
-| `sbert` | `sbert` | gpu-or-cpu | 9068 | Sentence-BERT text embeddings and their pairwise similarity |
-| `tapnext` | `tapnext` | gpu | 9069 | TAPNext point tracking with the Tomasi-Kanade observation matrix |
+| `lightglue` | `lightglue` | gpu-or-cpu | 9069 | SuperPoint/DISK features and LightGlue matching, pairwise or as a sliding-window stream |
+| `moge` | `moge` | cuda-only | 9067 | MoGe-3 monocular geometry: metric depth, point map, normals, intrinsics |
+| `open_clip` | `open_clip` | gpu-or-cpu | 9073 | OpenCLIP image and text embeddings from any open_clip model and pretrained tag, with cosine similarity and zero-shot probabilities |
+| `opencv` | `opencv` | gpu-or-cpu | 9065 | Classic feature extraction and matching: SIFT/ORB via FLANN, or SuperPoint/DISK via LightGlue, plus a RANSAC fundamental matrix |
+| `pycv` | `pycv` | cpu | 9075 | Runs user-supplied Python against OpenCV - a script or a one-line expression in, named arrays out |
+| `sbert` | `sbert` | gpu-or-cpu | 9062 | Sentence-BERT text embeddings and their pairwise similarity |
+| `sfm` | `sfm` | cpu | 9074 | SfM: camera poses + 3D points from feature tracks and monocular depth, with partial (missing) tracks |
+| `tapnext` | `tapnext` | gpu | 9063 | TAPNext point tracking with the Tomasi-Kanade observation matrix |
 | `unimatch` | `unimatch` | gpu-or-cpu | 9070 | Unified dense matching: optical flow, stereo disparity, and multi-view depth |
-| `vggt` | `vggt` | gpu | 9071 | VGGT multi-view 3D reconstruction: world points, per-view depth, camera poses, and a GLB |
-| `yolo` | `yolo` | gpu-or-cpu | 9072 | YOLO object detection with always-on tracking, on images or video |
+| `vggt` | `vggt` | gpu | 9066 | VGGT multi-view 3D reconstruction: world points, per-view depth, camera poses, and a GLB |
+| `yolo` | `yolo` | gpu-or-cpu | 9068 | YOLO object detection with always-on tracking, on images or video |
 
 Call one with the client:
 

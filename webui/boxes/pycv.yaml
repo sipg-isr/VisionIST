@@ -1,0 +1,98 @@
+# pycv box — runs user-supplied Python against OpenCV.
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/pycv/README.md
+id: pycv
+name: "pycv · run Python against OpenCV"
+box_key: pycv
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/pycv/README.md
+note: >-
+  This box executes the code you send it. Keep it on a trusted network. Use the
+  eval command with one expression (cv2.Canny(...)), or run with a main.py and
+  any helper modules. Named arguments go in the `args` JSON field, not in
+  parameters; the script reads them as vs.args.
+
+inputs:
+  - field: code
+    widget: json
+    kind: bb
+    required: true
+    multiple: true
+    placeholder: "eval: one expression. run: the .py sources, in the order of `names`."
+    constraint: "1 MB total across all files, 64 files max, .py names only"
+  - field: names
+    widget: tags
+    kind: ss
+    multiple: true
+    placeholder: "run only: one file name per source; one must be main.py"
+  - field: images
+    widget: image_upload
+    kind: bb
+    multiple: true
+    helper: "vs.images (decoded BGR) and vs.raw (original bytes)"
+  - field: texts
+    widget: tags
+    kind: ss
+    multiple: true
+    placeholder: "vs.texts"
+  - field: numbers
+    widget: tags
+    kind: ff
+    multiple: true
+    placeholder: "vs.numbers"
+  - field: inputs
+    widget: file_upload
+    kind: b
+    placeholder: "one .npz of named arrays -> vs.inputs"
+
+command:
+  values: [run, eval, reset]
+  default: eval
+
+parameters:
+  - key: timeout
+    widget: slider
+    default: 30
+    min: 1
+    max: 600
+    step: 1
+    placeholder: "wall-clock seconds; past it the process group is killed"
+  - key: entry
+    widget: select
+    values: ["main.py"]
+    default: "main.py"
+    placeholder: "run only: which sent file is executed"
+  - key: max_memory_mb
+    widget: number
+    default: 2048
+    min: 0
+    step: 256
+    placeholder: "RLIMIT_AS for the script; 0 disables it"
+  - key: max_output_mb
+    widget: number
+    default: 256
+    min: 1
+    step: 64
+  - key: decode_images
+    widget: select
+    values: ["true", "false"]
+    default: "true"
+    placeholder: "false leaves vs.images as the original bytes"
+
+section:
+  - key: args
+    widget: json
+    placeholder: '{"lo": 50, "hi": 150}  -> the script reads vs.args'
+
+results:
+  # Field names come from the script's own vs.emit calls, so the wildcard does
+  # most of the work here; these three are the ones the box always controls.
+  - field: stdout
+    visualizer: json
+    caption: "stdout"
+  - field: stderr
+    visualizer: json
+    caption: "stderr — the traceback lands here when a script fails"
+  - field: result
+    visualizer: tensor
+    caption: "eval: the expression's value"
+  - field: "*"
+    visualizer: json

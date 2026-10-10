@@ -15,9 +15,9 @@ selects what to do from the ``config`` key it understands.
         python fleet/supervisor_demo.py
 """
 
-# Ports follow the generated reference fleet (fleet/docker-compose.yml),
-# which assigns them in box-name order. Regenerating with a different
-# selection changes them - fleet/data/fleet.json always has the truth.
+# Ports follow the generated reference fleet (fleet/docker-compose.yml).
+# Each box's port is permanent (the registry's ports.json), so a different
+# selection does not change them - fleet/data/fleet.json always has the truth.
 import pathlib
 import sys
 import traceback
@@ -104,7 +104,7 @@ def demo_clip():
 
 def demo_textemb():
     """Pure-text sentence embeddings + a similarity matrix (no images)."""
-    b = Visionist("localhost:9068")
+    b = Visionist("localhost:9062")
     try:
         texts = ["a dog", "a car", "grass, sky, bark"]
         res = b.run(data={"texts": texts},
@@ -121,7 +121,7 @@ def demo_textemb():
 
 def demo_tapnext():
     """Multi-frame point tracking -> tracks over time (stateful: reset first)."""
-    b = Visionist("localhost:9069")
+    b = Visionist("localhost:9063")
     try:
         b.reset("tapnext")   # tapnext accumulates across calls -> start clean
         res = b.run(data={"images": [DOG, DOG, DOG]},
@@ -161,7 +161,7 @@ def demo_lang_segm():
 
 def demo_opencv():
     """Feature matching between two images -> keypoints + inlier matches."""
-    b = Visionist("localhost:9067")
+    b = Visionist("localhost:9065")
     try:
         res = b.run(data={"images": [DOG, CAR]},
                     config={"opencv": {"command": "match", "parameters": {}}})
@@ -177,7 +177,7 @@ def demo_opencv():
 
 def demo_moge():
     """Monocular 3D geometry -> per-image metric depth/points/normals (CUDA-only box)."""
-    b = Visionist("localhost:9066")
+    b = Visionist("localhost:9067")
     try:
         res = b.run(data={"images": [DOG]},
                     config={"moge": {"command": "infer", "parameters": {}}})
@@ -193,11 +193,11 @@ def demo_moge():
 def main() -> int:
     print("boxes fleet — one agnostic client, six boxes, one call shape\n")
     one(1, "clip",       "localhost:9061", demo_clip)
-    one(2, "textemb",    "localhost:9068", demo_textemb)
-    one(3, "tapnext",    "localhost:9069", demo_tapnext)
+    one(2, "textemb",    "localhost:9062", demo_textemb)
+    one(3, "tapnext",    "localhost:9063", demo_tapnext)
     one(4, "lang_segm",  "localhost:9064", demo_lang_segm)
-    one(5, "opencv",     "localhost:9067", demo_opencv)
-    one(6, "moge",       "localhost:9066", demo_moge)
+    one(5, "opencv",     "localhost:9065", demo_opencv)
+    one(6, "moge",       "localhost:9067", demo_moge)
     print("Every call above is the same shape:  Visionist(addr).run(data, config).")
     print("That is the entire end-user surface.")
     return 0

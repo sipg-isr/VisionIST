@@ -1,0 +1,84 @@
+# OpenCLIP box — stateless embeddings, model chosen per request.
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/open_clip/README.md
+id: open_clip
+name: "OpenCLIP · any model & pretrained tag"
+box_key: open_clip
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/open_clip/README.md
+note: >-
+  At least one of images or texts per call. Unlike the clip box the model is picked
+  per request and the payload uses the numpy codec (no torch on the client).
+  Embeddings from different (model, pretrained) pairs are not comparable.
+
+inputs:
+  - field: images
+    widget: image_upload
+    kind: bb
+    multiple: true
+    required: false
+  - field: texts
+    widget: tags
+    kind: ss
+    multiple: true
+    required: false
+
+command:
+  values: [encode, models, reset]
+  default: encode
+
+parameters:
+  - key: model
+    widget: select
+    values:
+      - ViT-B-32
+      - ViT-L-14
+      - ViT-H-14
+      - ViT-SO400M-14-SigLIP
+      - RN50
+    default: ViT-B-32
+    placeholder: "architecture name, or hf-hub:<org>/<repo>"
+  - key: pretrained
+    widget: select
+    values:
+      - laion2b_s34b_b79k
+      - openai
+      - datacomp_xl_s13b_b90k
+      - webli
+    default: laion2b_s34b_b79k
+    placeholder: "checkpoint tag for the model above; ignored for hf-hub: models"
+  - key: device
+    widget: select
+    values: [auto, cuda, cpu]
+    default: auto
+  - key: normalize
+    widget: select
+    values: ["true", "false"]
+    default: "true"
+    placeholder: "L2-normalise image_emb and text_emb"
+  - key: batch_size
+    widget: number
+    default: 32
+    min: 1
+    max: 256
+    step: 1
+
+results:
+  - field: image_emb
+    visualizer: tensor
+    caption: "image embeddings (n_img × D)"
+  - field: text_emb
+    visualizer: tensor
+    caption: "text embeddings (n_txt × D)"
+  - field: similarity
+    visualizer: matrix
+    caption: "cosine similarity (n_img × n_txt)"
+    params:
+      row_labels: images
+      col_labels: texts
+  - field: probs
+    visualizer: matrix
+    caption: "zero-shot probabilities, rows sum to 1 (n_img × n_txt)"
+    params:
+      row_labels: images
+      col_labels: texts
+  - field: "*"
+    visualizer: json

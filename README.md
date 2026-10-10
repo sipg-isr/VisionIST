@@ -62,8 +62,11 @@ python3 tools/make_fleet.py --all --runtime cpu --registry dockerhub --out lapto
 cd my-fleet && docker compose pull && docker compose up -d
 ```
 
-Host ports are assigned in box-name order from `--base-port` (9061 by
-default), so adding a box never means finding a free port by hand.
+Each box has a permanent host port, issued once in arrival order and
+recorded in the registry's
+[`ports.json`](https://github.com/sipg-isr/VisionIST_Library/blob/main/registry/ports.json).
+A box therefore answers on the same port in every fleet: a partial selection
+has gaps rather than renumbered boxes, and adding a box moves nothing.
 `fleet/data/fleet.json` records the service-name addresses the webui uses.
 
 **Access**

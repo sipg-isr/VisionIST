@@ -1,6 +1,9 @@
 name: publish webui
 
 # The webui is the only image this repo publishes; boxes live in VisionIST_Library.
+# It publishes a single moving tag, sipgisr/visionist-webui:latest - image names
+# in this project carry no version. The git tag webui-v<version> records which
+# commit produced the current :latest.
 on:
   push:
     tags: ["webui-v*"]
@@ -18,16 +21,9 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - id: v
-        run: |
-          V="${GITHUB_REF_NAME#webui-v}"
-          [ "$GITHUB_REF_TYPE" = "tag" ] || V="dev"
-          echo "version=$V" >> "$GITHUB_OUTPUT"
       - uses: docker/build-push-action@v6
         with:
           context: .
           file: webui/Dockerfile
           push: true
-          tags: |
-            sipgisr/visionist-webui:${{ steps.v.outputs.version }}
-            sipgisr/visionist-webui:latest
+          tags: sipgisr/visionist-webui:latest
