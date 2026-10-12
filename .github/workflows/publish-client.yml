@@ -21,3 +21,81 @@ jobs:
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: visionist_client/dist/
+
+
+# Publish visionist-client to PyPI.
+#
+# Trigger: a git tag shaped like `visionist-client-vX.Y.Z`, e.g.:
+#     git tag visionist-client-v0.1.2 && git push origin visionist-client-v0.1.2
+#
+# Flow: check tag version == pyproject version -> build sdist+wheel ->
+#       test (plain install, then +torch) -> twine upload.
+#
+# Required repo secret: PYPI_API_TOKEN  (settings -> secrets and variables -> actions)
+# Use a token scoped to the `visionist-client` release if the PyPI UI offers it.
+
+name: publish visionist-client
+
+on:
+  push:
+    tags:
+      - "visionist-client-v*"
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-publish:
+    name: build / test / upload
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      # The release version must come from the tag and be exactly what the
+      # package declares -- otherwise the upload is rejected before build.
+      - name: Check tag version matches pyproject
+        shell: bash
+        run: |
+          expected="${GITHUB_REF_NAME#visionist-client-v}"
+          actual="$(python3 -c "import tomllib; print(tomllib.load(open('visionist_client/pyproject.toml','rb'))['project']['version'])")"
+          if [ "$expected" != "$actual" ]; then
+            echo "::error::tag version (v${expected}) does not match visionist_client/pyproject.toml (${actual}) — bump the version, commit, and tag that version"
+            exit 1
+          fi
+
+      - name: Install build tooling
+        run: python3 -m pip install --upgrade pip build twine
+
+      - name: Build sdist + wheel
+        working-directory: visionist_client
+        run: python3 -m build
+
+      # Plain install first: this is exactly what a `pip install visionist-client`
+      # user gets (no torch). Tests must pass there.
+      - name: Install wheel (no torch) + test
+        run: |
+          # NB: leave the glob UNquoted so bash expands it to the one wheel.
+          python3 -m pip install visionist_client/dist/*-py3-none-any.whl
+          python3 visionist_client/tests/fake_box_smoke.py
+          python3 visionist_client/tests/codec_smoke.py
+
+      # Then the torch path (CPU wheels only — no CUDA image needed in CI).
+      - name: Add torch (CPU) + re-test
+        run: |
+          python3 -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+          python3 visionist_client/tests/fake_box_smoke.py
+          python3 visionist_client/tests/codec_smoke.py
+
+      - name: Upload to PyPI
+        working-directory: visionist_client
+        env:
+          TWINE_USERNAME: "__token__"
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+        # --skip-existing: replaying a tag (CI re-run) is a no-op, not a failure.
+        run: python3 -m twine upload --non-interactive --skip-existing dist/*
