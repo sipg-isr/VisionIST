@@ -1,16 +1,23 @@
-   name: publish-client
-   on:
-     push:
-       tags: ["client-v*"]
-   jobs:
-     publish:
-       runs-on: ubuntu-latest
-       environment: pypi
-       permissions:
-         id-token: write
-       steps:
-         - uses: actions/checkout@v4
-         - uses: actions/setup-python@v5
-           with: { python-version: "3.12" }
-         - run: pip install build && python -m build
-         - uses: pypa/gh-action-pypi-publish@release/v1
+name: publish-client
+on:
+  push:
+    tags: ["client-v*"]
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Check tag matches pyproject version
+        run: |
+          v=$(python -c "import tomllib;print(tomllib.load(open('visionist_client/pyproject.toml','rb'))['project']['version'])")
+          [ "client-v$v" = "${GITHUB_REF_NAME}" ] || { echo "tag ${GITHUB_REF_NAME} != client-v$v"; exit 1; }
+      - run: pip install build && python -m build
+        working-directory: visionist_client
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: visionist_client/dist/
