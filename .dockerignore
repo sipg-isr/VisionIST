@@ -10,7 +10,7 @@ docs
 fleet
 build-logs
 data
-webui/web/src
+webui/web/dist
 webui/web/*.map
 webui/tests
 tests
