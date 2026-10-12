@@ -100,7 +100,7 @@ has gaps rather than renumbered boxes, and adding a box moves nothing.
 
 ## Documentation
 
-Start at [docs/index.md](docs/index.md):
+Start at [docs/index.md](docs/README.md):
 
 - [Architecture overview](docs/Architecture_Overview.md) — what a box is, the
   conventions, GPU memory lifecycle
