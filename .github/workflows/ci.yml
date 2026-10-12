@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  python:
+    name: client + webui tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install (CPU torch, so the tensor-codec tests run)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install pytest httpx -e visionist_client -e webui
+      - name: Client smoke tests (in-process fake boxes, no GPU)
+        run: |
+          python visionist_client/tests/fake_box_smoke.py
+          python visionist_client/tests/codec_smoke.py
+          python visionist_client/tests/tracking_smoke.py
+      - name: Webui tests
+        run: python -m pytest webui/tests -q
+
+  web:
+    name: SPA builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - working-directory: webui/web
+        run: |
+          npm ci --no-audit --no-fund
+          npm run build   # tsc --noEmit && vite build
+
+  webui-image:
+    name: webui image builds from a clean clone
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -f webui/Dockerfile -t visionist-webui-ci .
