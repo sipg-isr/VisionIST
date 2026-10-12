@@ -1,9 +1,5 @@
 # Publishing `visionist-client` to PyPI
 
-## Status: ✅ 0.1.1 published (2026-09-14)
-https://pypi.org/project/visionist-client/0.1.1/ — installed from PyPI into a fresh
-venv; import + both smoke suites pass. The name `visionist-client` is reserved.
-
 ## Original verification notes
 
 - Name `visionist-client` is **free** on PyPI.

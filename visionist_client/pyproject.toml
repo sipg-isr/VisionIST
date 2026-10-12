@@ -12,7 +12,7 @@ requires-python = ">=3.10"
 # helpers, so the package is GPL-3.0 (repo LICENSE, copied into this dir).
 license = "GPL-3.0-only"
 license-files = ["LICENSE"]
-authors = [{ name = "Manuel Ferreira" }]
+authors = [{ name = "Manuel Ferreira" },{name="Joao P. Costeira"}]
 keywords = [
     "grpc", "grpc-client", "inference-serving", "ai-fleet",
     "pipeline", "zstandard", "codec",
@@ -40,9 +40,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/manel-ferreira-01/VisionIST"
-Repository = "https://github.com/manel-ferreira-01/VisionIST"
-Issues = "https://github.com/manel-ferreira-01/VisionIST/issues"
+Homepage = "https://github.com/sipg-isr/VisionIST"
+Repository = "https://github.com/sipg-isr/VisionIST"
+Issues = "https://github.com/sipg-isr/VisionIST/issues"
 
 [project.optional-dependencies]
 dev = [
