@@ -1,0 +1,92 @@
+# mediapipe box — MediaPipe hand / pose / face landmarks on CPU.
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/mediapipe/README.md
+id: mediapipe
+name: "MediaPipe · hand, pose and face landmarks"
+box_key: mediapipe
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/mediapipe/README.md
+note: >
+  Pick a command: hands (21 points per hand), pose (33 per person) or face (the
+  478-point mesh). Coordinates are normalized to [0, 1] as (x, y, z) unless you
+  switch `coordinates` to pixels — z is depth relative to the subject, on roughly
+  the same scale as x. `landmarks` is padded to the largest detection count in
+  the batch, so read `counts` to know how many rows of each image are real: an
+  image where nothing was found is a row of zeros. `world_landmarks` (hands and
+  pose) is in metres, origin at the hand centre or the hips.
+
+inputs:
+  - field: images
+    widget: image_upload
+    kind: bb
+    multiple: true
+    required: true
+    helper: one or more frames; every frame runs through the same landmarker
+
+command:
+  values: [hands, pose, face, reset]
+  default: hands
+
+parameters:
+  - key: max_results
+    widget: number
+    default: 2
+    placeholder: "hands / poses / faces to look for (default 2 hands, 1 pose, 1 face)"
+  - key: model
+    widget: select
+    values: [lite, full, heavy]
+    default: lite
+    placeholder: "pose only — heavy is the most accurate and ~3x slower"
+  - key: coordinates
+    widget: select
+    values: [normalized, pixels]
+    default: normalized
+    placeholder: "pixels converts to image units, to match the opencv keypoints"
+  - key: min_detection_confidence
+    widget: slider
+    min: 0.0
+    max: 1.0
+    step: 0.05
+    default: 0.5
+  - key: min_presence_confidence
+    widget: slider
+    min: 0.0
+    max: 1.0
+    step: 0.05
+    default: 0.5
+  - key: blendshapes
+    widget: select
+    values: ["false", "true"]
+    default: "false"
+    placeholder: "face only — the 52 expression scores"
+  - key: transformation_matrix
+    widget: select
+    values: ["false", "true"]
+    default: "false"
+    placeholder: "face only — the 4x4 canonical-face matrix"
+
+results:
+  - field: landmarks
+    visualizer: tensor
+    caption: "landmarks (n_images, M, L, 3) as (x, y, z) — L is 21 hands / 33 pose / 478 face"
+  - field: counts
+    visualizer: tensor
+    caption: "detections per image; rows of landmarks past counts[i] are padding"
+  - field: world_landmarks
+    visualizer: tensor
+    caption: "metric landmarks in metres (hands and pose only)"
+  - field: handedness
+    visualizer: tensor
+    caption: "hands: 0 = left, 1 = right, -1 = padding (the label is for the image as sent)"
+  - field: scores
+    visualizer: tensor
+    caption: "hands: confidence of the handedness label"
+  - field: visibility
+    visualizer: tensor
+    caption: "pose: per-landmark visibility in [0, 1]; an occluded joint still gets a position"
+  - field: blendshapes
+    visualizer: tensor
+    caption: "face: 52 expression scores per face, in blendshape_names order"
+  - field: transformation_matrixes
+    visualizer: tensor
+    caption: "face: 4x4 canonical-face-to-detected-face matrix per face"
+  - field: "*"
+    visualizer: json
