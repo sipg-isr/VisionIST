@@ -24,4 +24,5 @@ webui/web/dist/
 
 # Webui runtime state and local fleets
 webui/data/
+/data/
 fleet/data/*.bak

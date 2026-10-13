@@ -6,7 +6,17 @@
       "addr": "clip:8061",
       "def_id": "clip",
       "note": "CLIP image and text embeddings with their cross-modal similarity",
-      "last_probe": null
+      "added": 1791928970.9871137,
+      "last_probe": {
+        "at": 1791929630.9591188,
+        "addr": "clip:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "d4rt",
@@ -14,7 +24,17 @@
       "addr": "d4rt:8061",
       "def_id": "d4rt",
       "note": "OpenD4RT 4D reconstruction and tracking - 3D point tracks, point clouds and camera poses from a video",
-      "last_probe": null
+      "added": 1791928970.9871235,
+      "last_probe": {
+        "at": 1791929631.1811097,
+        "addr": "d4rt:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "features",
@@ -22,7 +42,17 @@
       "addr": "features:8061",
       "def_id": "features",
       "note": "SIFT keypoints in the SIFT-Extractor layout: (2+128) x N, annotated JPEGs, MATLAB .mat",
-      "last_probe": null
+      "added": 1791928970.9871275,
+      "last_probe": {
+        "at": 1791929631.1041996,
+        "addr": "features:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "lang_sam",
@@ -30,7 +60,17 @@
       "addr": "lang_sam:8061",
       "def_id": "lang_sam",
       "note": "Text-guided segmentation with LangSAM: phrases in, masks out",
-      "last_probe": null
+      "added": 1791928970.987131,
+      "last_probe": {
+        "at": 1791929631.1131344,
+        "addr": "lang_sam:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "lightglue",
@@ -38,7 +78,17 @@
       "addr": "lightglue:8061",
       "def_id": "lightglue",
       "note": "SuperPoint/DISK features and LightGlue matching, pairwise or as a sliding-window stream",
-      "last_probe": null
+      "added": 1791928970.9871345,
+      "last_probe": {
+        "at": 1791929631.1823146,
+        "addr": "lightglue:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "mediapipe",
@@ -46,7 +96,17 @@
       "addr": "mediapipe:8061",
       "def_id": "mediapipe",
       "note": "MediaPipe landmarks: 21-point hands, 33-point body pose, 478-point face mesh, on CPU",
-      "last_probe": null
+      "added": 1791928970.9871378,
+      "last_probe": {
+        "at": 1791929631.1471746,
+        "addr": "mediapipe:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "moge",
@@ -54,7 +114,17 @@
       "addr": "moge:8061",
       "def_id": "moge",
       "note": "MoGe-3 monocular geometry: metric depth, point map, normals, intrinsics",
-      "last_probe": null
+      "added": 1791928970.9871411,
+      "last_probe": {
+        "at": 1791929631.188904,
+        "addr": "moge:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "open_clip",
@@ -62,7 +132,17 @@
       "addr": "open_clip:8061",
       "def_id": "open_clip",
       "note": "OpenCLIP image and text embeddings from any open_clip model and pretrained tag, with cosine similarity and zero-shot probabilities",
-      "last_probe": null
+      "added": 1791928970.9871442,
+      "last_probe": {
+        "at": 1791929631.3282921,
+        "addr": "open_clip:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "opencv",
@@ -70,7 +150,17 @@
       "addr": "opencv:8061",
       "def_id": "opencv",
       "note": "Classic feature extraction and matching: SIFT/ORB via FLANN, or SuperPoint/DISK via LightGlue, plus a RANSAC fundamental matrix",
-      "last_probe": null
+      "added": 1791928970.9871523,
+      "last_probe": {
+        "at": 1791929631.334176,
+        "addr": "opencv:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "pycv",
@@ -78,7 +168,17 @@
       "addr": "pycv:8061",
       "def_id": "pycv",
       "note": "Runs user-supplied Python against OpenCV - a script or a one-line expression in, named arrays out",
-      "last_probe": null
+      "added": 1791928970.9871557,
+      "last_probe": {
+        "at": 1791929631.414942,
+        "addr": "pycv:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "sbert",
@@ -86,7 +186,17 @@
       "addr": "sbert:8061",
       "def_id": "sbert",
       "note": "Sentence-BERT text embeddings and their pairwise similarity",
-      "last_probe": null
+      "added": 1791928970.987159,
+      "last_probe": {
+        "at": 1791929631.4578054,
+        "addr": "sbert:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "sfm",
@@ -94,7 +204,17 @@
       "addr": "sfm:8061",
       "def_id": "sfm",
       "note": "SfM: camera poses + 3D points from feature tracks and monocular depth, with partial (missing) tracks",
-      "last_probe": null
+      "added": 1791928970.9871626,
+      "last_probe": {
+        "at": 1791929631.459204,
+        "addr": "sfm:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "tapnext",
@@ -102,7 +222,17 @@
       "addr": "tapnext:8061",
       "def_id": "tapnext",
       "note": "TAPNext point tracking with the Tomasi-Kanade observation matrix",
-      "last_probe": null
+      "added": 1791928970.987166,
+      "last_probe": {
+        "at": 1791929631.458433,
+        "addr": "tapnext:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "unimatch",
@@ -110,7 +240,17 @@
       "addr": "unimatch:8061",
       "def_id": "unimatch",
       "note": "Unified dense matching: optical flow, stereo disparity, and multi-view depth",
-      "last_probe": null
+      "added": 1791928970.9871693,
+      "last_probe": {
+        "at": 1791929631.6203773,
+        "addr": "unimatch:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "vggt",
@@ -118,7 +258,17 @@
       "addr": "vggt:8061",
       "def_id": "vggt",
       "note": "VGGT multi-view 3D reconstruction: world points, per-view depth, camera poses, and a GLB",
-      "last_probe": null
+      "added": 1791928970.9871726,
+      "last_probe": {
+        "at": 1791929631.619761,
+        "addr": "vggt:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     },
     {
       "id": "yolo",
@@ -126,7 +276,17 @@
       "addr": "yolo:8061",
       "def_id": "yolo",
       "note": "YOLO object detection with always-on tracking, on images or video",
-      "last_probe": null
+      "added": 1791928970.987178,
+      "last_probe": {
+        "at": 1791929631.6783311,
+        "addr": "yolo:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     }
   ]
 }
