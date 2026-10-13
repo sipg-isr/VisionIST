@@ -41,6 +41,14 @@
       "last_probe": null
     },
     {
+      "id": "mediapipe",
+      "name": "mediapipe",
+      "addr": "mediapipe:8061",
+      "def_id": "mediapipe",
+      "note": "MediaPipe landmarks: 21-point hands, 33-point body pose, 478-point face mesh, on CPU",
+      "last_probe": null
+    },
+    {
       "id": "moge",
       "name": "moge",
       "addr": "moge:8061",
