@@ -981,6 +981,13 @@ function TracksSteps({ def, history, title }: { def: BoxDef; history: HistItem[]
 function TextBlock({ value, title }: { value: unknown; title?: string }) {
   const [txt, setTxt] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  // tail-follow: always park at the END of the log, initial render and
+  // every update (live polls append at the bottom)
+  const preRef = useRef<HTMLPreElement | null>(null);
+  useEffect(() => {
+    const el = preRef.current;
+    if (el && txt !== null) el.scrollTop = el.scrollHeight;
+  }, [txt]);
   const url = refUrl(value);
   useEffect(() => {
     if (typeof value === "string") { setTxt(value); return; }
@@ -999,7 +1006,7 @@ function TextBlock({ value, title }: { value: unknown; title?: string }) {
       {pending && <span className="spinnerbox"><span className="spinner" /></span>}
       {txt === null && !pending && <div className="note">no text in this response</div>}
       {txt !== null && (
-        <pre style={{ margin: 0, padding: 10, maxHeight: 440, overflow: "auto",
+        <pre ref={preRef} style={{ margin: 0, padding: 10, maxHeight: 440, overflow: "auto",
                       fontFamily: "var(--mono)", fontSize: 12, lineHeight: 1.45, whiteSpace: "pre-wrap",
                       background: "#0a0d11", border: "1px solid var(--line)", borderRadius: 6 }}>{txt}</pre>
       )}
