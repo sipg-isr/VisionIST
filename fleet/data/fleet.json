@@ -287,6 +287,24 @@
         "reflection": true,
         "reachable": true
       }
+    },
+    {
+      "id": "colmap",
+      "name": "colmap",
+      "addr": "colmap-test:8061",
+      "def_id": "colmap",
+      "note": null,
+      "added": 1791978899.8789089,
+      "last_probe": {
+        "at": 1791978899.9332297,
+        "addr": "colmap-test:8061",
+        "service": "pipeline.PipelineService",
+        "methods": [
+          "Process"
+        ],
+        "reflection": true,
+        "reachable": true
+      }
     }
   ]
 }

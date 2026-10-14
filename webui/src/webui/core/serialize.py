@@ -153,9 +153,22 @@ def _finite(arr) -> bool:
 
 
 
-def _ser_ndarray(v, store: ArtifactStore) -> dict:
+def _ser_ndarray(v, store: ArtifactStore) -> Any:
     dname = v.dtype.name
     shape = list(v.shape)
+    if v.dtype.kind in ("U", "S"):
+        # string dtypes (e.g. arrays of names via the numpy codec) -> inline
+        # list within the caps (JSON carries these; a pickle file would not
+        # render as a table)
+        if v.size <= MAX_LIST_ITEMS and len(shape) <= 2:
+            def _clean(x):
+                if isinstance(x, (bytes, bytearray)):   # S-kind elements are bytes
+                    return x.decode("utf-8", "replace")
+                if isinstance(x, list):                 # 2-D
+                    return [_clean(y) for y in x]
+                return str(x)
+            return _clean(v.tolist())
+        return _pickle_ref(store, v, f"string ndarray ({dname}) over the inline cap")
     if dname in _NUMPY_OK:
         if v.size <= MAX_INLINE_ELEMENTS and _finite(v):
             return _array_inline(None, dname, shape, v.tolist(), v.dtype.itemsize)   # bools stay bools

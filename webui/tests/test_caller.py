@@ -102,7 +102,37 @@ def test_tapnext_session_injection(reg, store):
 def test_migrated_boxes_are_present(reg, store):
     """opencv, lightglue and d4rt all speak the shared envelope now."""
     ids = {d.id for d in reg}
-    assert {"opencv", "lightglue", "d4rt"} <= ids
+    assert {"opencv", "lightglue", "d4rt", "colmap"} <= ids
+
+
+def test_colmap_reset_ping_is_disabled(reg, store):
+    """colmap's reset cancels the running reconstruction — the client's
+    "safe no-op" reset ping would kill a long job, so the definition opts
+    out (reset_first=false)."""
+    d = reg.get("colmap")
+    assert d.reset_first is False
+
+    spec = build_call(d, CallRequest(data={"images": [b"f1", b"f2"]}), store)
+    assert spec.config["colmap"]["command"] == "reconstruct"
+    assert spec.reset_first is False       # never auto-ping a box whose reset has teeth
+
+    # command=log needs no images and must NOT ping either (it is polled
+    # while a job owns the box's worker)
+    spec = build_call(d, CallRequest(command="log"), store)
+    assert spec.config["colmap"]["command"] == "log"
+    assert spec.reset_first is False
+
+    # an explicit reset IS sent (it is the box's cancel)
+    spec = build_call(d, CallRequest(command="reset"), store)
+    assert spec.config["colmap"]["command"] == "reset"
+    assert spec.reset_first is False
+
+
+def test_colmap_unknown_command_rejected(reg, store):
+    with pytest.raises(CallBuildError) as ei:
+        build_call(reg.get("colmap"), CallRequest(
+            data={"images": [b"f1"]}, command="fly"), store)
+    assert "reconstruct" in ei.value.detail["known"]
 
 
 # ------------------------------------------------------------------- strict

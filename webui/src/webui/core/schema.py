@@ -49,6 +49,7 @@ VISUALIZERS: frozenset[str] = frozenset({
                        # dense cloud — keys named by params, read from the field (a dict)
                        # or from the response's top-level fields
     "tracks_player",  # frames + tracks/visibles animation
+    "text",           # plain text / log tail (string or text artifact) -> monospaced scroll block
     "download",       # raw file download
 })
 
@@ -221,6 +222,10 @@ class BoxDef(_Def):
     method: str = "Process"                # contract RPC; only "Process" is usable today
     docs: Optional[str] = None
     note: Optional[str] = None
+    reset_first: bool = True               # False = the box's `reset` is NOT a harmless no-op
+                                           # (e.g. colmap's reset CANCELS the running
+                                           # reconstruction): the webui then never auto-sends
+                                           # the client's "reset ping" before other commands
     experimental: bool = False
     input_mosaic: bool = True              # hide the "inputs" image mosaic when the
                                            # result already shows the input (e.g. yolo's

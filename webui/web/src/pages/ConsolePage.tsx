@@ -14,7 +14,7 @@ import type { BoxDef, CallResult, FleetEntry, ParamDef, SerRef } from "../api";
 import { Widget } from "../form/widgets";
 import type { FValue } from "../form/widgets";
 import { ErrorBox, Spinner, StatusChip, bytesShort, fmtNum } from "../ui";
-import { fetchTyped, flattenNumbers, inlineValues, isRef } from "../resolvers";
+import { fetchTyped, flattenNumbers, inlineValues, isRef, refUrl } from "../resolvers";
 import { SceneView } from "../viz/SceneView";
 import { JsonTree, RenderValue } from "../viz/JsonTree";
 import { DataTable } from "../viz/DataTable";
@@ -795,6 +795,8 @@ export function ResultBlock({
         />
       );
     }
+    case "text":
+        return <TextBlock value={v} title={title} />;
     case "download": {
       // A single file ref, or a list of them (e.g. per-frame JPEGs) → one
       // link per item.  No preview: the point is to grab the raw files.
@@ -919,6 +921,39 @@ function TracksSteps({ def, history, title }: { def: BoxDef; history: HistItem[]
 
   if (steps === null) return <Spinner label="assembling tracking steps…" />;
   return <TracksPlayer steps={steps} title={title || "tracks (session history)"} />;
+}
+
+// ----------------------------------------------------------------- text
+
+/** Plain-text block (logs): inline string, a text file artifact (fetched),
+ *  or a pretty-printed fallback.  Scrollable, newest at the bottom. */
+function TextBlock({ value, title }: { value: unknown; title?: string }) {
+  const [txt, setTxt] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const url = refUrl(value);
+  useEffect(() => {
+    if (typeof value === "string") { setTxt(value); return; }
+    if (value === undefined || value === null) { setTxt(null); return; }
+    if (!url) { setTxt(JSON.stringify(value, null, 2)); return; }
+    let alive = true;
+    setTxt(null); setPending(true);
+    fetch(url).then((r) => (r.ok ? r.text() : Promise.reject(r)))
+      .then((t) => { if (alive) { setTxt(t); setPending(false); } })
+      .catch(() => { if (alive) { setTxt(null); setPending(false); } });
+    return () => { alive = false; };
+  }, [value, url]);
+  return (
+    <div>
+      {title && <div className="viz-caption">{title}</div>}
+      {pending && <span className="spinnerbox"><span className="spinner" /></span>}
+      {txt === null && !pending && <div className="note">no text in this response</div>}
+      {txt !== null && (
+        <pre style={{ margin: 0, padding: 10, maxHeight: 440, overflow: "auto",
+                      fontFamily: "var(--mono)", fontSize: 12, lineHeight: 1.45, whiteSpace: "pre-wrap",
+                      background: "#0a0d11", border: "1px solid var(--line)", borderRadius: 6 }}>{txt}</pre>
+      )}
+    </div>
+  );
 }
 
 // ----------------------------------------------------------------- history

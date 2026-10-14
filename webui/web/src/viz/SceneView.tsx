@@ -47,6 +47,22 @@ function f32(a: Num | null): Float32Array | null {
   return a instanceof Float32Array ? a : Float32Array.from(a);
 }
 
+/** three.js vertex colors are 0..1; boxes may hand over integer 0..255
+ *  RGB (e.g. uint8 scene colours) — rescaled (sampled, cheap), otherwise
+ *  every point would clamp to washed-out white.  Box-agnostic heuristic: */
+function unitize(a: Float32Array | null): Float32Array | null {
+  if (!a || !a.length) return a;
+  let m = 0;
+  const step = Math.max(1, Math.floor(a.length / 20000));
+  for (let i = 0; i < a.length; i += step) {
+    for (let j = 0; j < 3 && i + j < a.length; j++) { m = Math.max(m, a[i + j]); }
+  }
+  if (m <= 1.5) return a;
+  const out = new Float32Array(a.length);
+  for (let i = 0; i < a.length; i++) out[i] = a[i] / m;
+  return out;
+}
+
 /** OpenCV (x, y, z) → view (x, −y, −z), in place. */
 function toView(a: Float32Array): Float32Array {
   for (let i = 0; i < a.length; i += 3) { a[i + 1] = -a[i + 1]; a[i + 2] = -a[i + 2]; }
@@ -94,10 +110,10 @@ export function SceneView({
         if (!p && !d) { setErr("no points in this response"); return; }
         setData({
           points: p ? toView(Float32Array.from(p)) : null,
-          colors: f32(c),
+          colors: unitize(f32(c)),
           cameras: cam,
           dense: d ? toView(Float32Array.from(d)) : null,
-          denseColors: f32(dc),
+          denseColors: unitize(f32(dc)),
           denseFrames: df,
           K: K && K.length >= 9 ? K : null,
           size: sz && sz.length >= 2 ? [sz[0], sz[1]] : null,
@@ -275,10 +291,17 @@ function SceneCanvas({
 
       if (camGeo && camGeo.F > 0) {
         const group = new THREE.Group();
-        const [W, H] = data.size ?? [4, 3];
-        const K = data.K ? Array.from(data.K).map(Number) : [W / (2 * Math.tan(Math.PI / 6)), 0, W / 2, 0, W / (2 * Math.tan(Math.PI / 6)), H / 2, 0, 0, 1];
+        // frustum image size: from the def when given; else, with intrinsics
+        // known, from the principal point (cx, cy assumed near centre —
+        // W = 2·cx, H = 2·cy); otherwise a 60° 4:3 default.  (A K built for a
+        // 1600px image against a 4px "image" degenerates to a point.)
+        const K9 = data.K ? Array.from({ length: Math.min(9, data.K.length) }, (_, i) => Number(data.K![i])) : null;
+        const W = data.size ? data.size[0] : (K9 ? 2 * K9[2] : 4);
+        const H = data.size ? data.size[1] : (K9 ? 2 * K9[5] : 3);
+        const K = K9 ?? [W / (2 * Math.tan(Math.PI / 6)), 0, W / 2,
+                          0, H / (2 * Math.tan(Math.PI / 6)), H / 2, 0, 0, 1];
         const L = size * 0.06;
-        const corners = [[0, 0], [W, 0], [W, H], [0, H]].map(([u, v]) => [(u - K[2]) / K[0] * L, (v - K[5]) / K[4] * L, L]);
+        const corners = [[0, 0], [W, 0], [W, H], [0, H]].map(([u, v]) => [((u - K[2]) / K[0]) * L, ((v - K[5]) / K[4]) * L, L]);
         const segs: number[] = [], segs0: number[] = [], path: number[] = [];
         for (let f = 0; f < camGeo.F; f++) {
           const R = camGeo.Rs[f], t = camGeo.ts[f], C = camGeo.centres[f];

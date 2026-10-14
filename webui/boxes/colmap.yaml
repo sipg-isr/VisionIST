@@ -1,0 +1,124 @@
+# COLMAP box — ground-truth SfM: the reference solver, plain images in.
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/colmap/README.md
+id: colmap
+name: "COLMAP · ground-truth SfM (reference solver)"
+box_key: colmap
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/colmap/README.md
+note: >
+  The arbiter of the fleet: run it on the same images a fast box (sfm, d4rt)
+  is in doubt about and compare. reconstruct is a SINGLE LONG call (tens of
+  seconds to minutes) — the reply arrives only when COLMAP finishes. Watching
+  a job: in the command selector pick `log` and Call — the status panel shows
+  the live state (running / stage / elapsed_s / lines) and the log block below
+  it shows the tail of COLMAP's own output; re-run `log` to poll. `reset`
+  CANCELS the running job. One reconstruction at a time: a second concurrent
+  reconstruct is refused in-band. Camera models default to a single shared
+  one (single_camera box default); fixed intrinsics and per-image cameras
+  need the raw config (see the box README).
+
+# This box's reset has teeth (it cancels the running reconstruction), so
+# the webui must never auto-send the "safe no-op" reset ping before calls.
+reset_first: false
+
+experimental: true
+
+input_mosaic: true   # the input frames stay useful at a glance; the scene is a different view
+
+inputs:
+  - field: images
+    widget: image_upload
+    kind: bb
+    multiple: true
+    required: false
+    constraint: "needed for `reconstruct` (the box answers an in-band `empty_request` without them) — not needed for `log` / `reset`"
+    helper: video_frames
+    placeholder: "the view set (JPEG/PNG) — or drop a video and the frames are extracted in your browser"
+  - field: image_names
+    widget: tags
+    kind: ss
+    required: false
+    placeholder: "optional, ordered names — their ORDER sets the video order for the sequential matcher (one per image)"
+
+command:
+  values: [reconstruct, log, reset]
+  default: reconstruct
+
+parameters:
+  - key: mapper
+    widget: select
+    values: [incremental, global, hierarchical]
+    default: incremental
+    placeholder: "incremental = COLMAP reference (strictest GT) · global = GLOMAP, 1-2 orders of magnitude faster · hierarchical = very large sets"
+  - key: matcher
+    widget: select
+    values: [auto, exhaustive, sequential]
+    default: auto
+    placeholder: "auto = exhaustive (or sequential when image_names are sent) · exhaustive · sequential"
+  - key: sequential_overlap
+    widget: number
+    min: 1
+    max: 100
+    step: 1
+    placeholder: "sequential matcher: pairs to try per image (box default 5)"
+  - key: max_image_size
+    widget: number
+    min: 64
+    max: 16384
+    step: 32
+    placeholder: "feature-extraction resolution cap — the biggest speed/quality lever (box default 3200)"
+  - key: max_num_features
+    widget: number
+    min: 128
+    max: 131072
+    step: 128
+    placeholder: "features per image (box default 8192)"
+  - key: use_gpu
+    widget: select
+    values: [auto, "true", "false"]
+    default: auto
+    placeholder: "GPU SIFT extraction + matching when a device is present; always runs on CPU otherwise"
+  - key: intrinsics
+    widget: json
+    placeholder: "fixed camera, e.g. \"PINHOLE 640 480 500 500 320 240\" — leave empty to let COLMAP self-calibrate"
+  - key: max_runtime_s
+    widget: number
+    min: 0
+    max: 86400
+    step: 10
+    placeholder: "runtime budget in seconds — 0 = unlimited; on expiry the box flushes partial results and reports partial=true"
+  - key: tail
+    widget: number
+    min: 10
+    max: 20000
+    step: 10
+    placeholder: "log: how many log lines to return (box default 100)"
+
+results:
+  - field: points
+    visualizer: scene
+    caption: "ground-truth reconstruction — points + camera frustums (orbit/zoom; first camera = origin; status panel shows reprojection error)"
+    params:
+      points: points
+      colors: point_colors
+      cameras: cameras
+      intrinsics: intrinsics
+  - field: cameras
+    visualizer: tensor
+    caption: "camera poses — world→camera [R|t] per registered image (F, 3, 4)"
+  - field: intrinsics
+    visualizer: tensor
+    caption: "pinhole view of each camera model (F, 3, 3)"
+  - field: point_colors
+    visualizer: tensor
+    caption: "per-point RGB (P, 3)"
+  - field: frame_ids
+    visualizer: tensor
+    caption: "input index (position in `images`) of each registered frame (F,)"
+  - field: image_names
+    visualizer: table
+    caption: "registered image names (F,)"
+  - field: log
+    visualizer: text
+    caption: "COLMAP output — the log is polled: while a reconstruction runs, hit `log` again to refresh"
+  - field: "*"
+    visualizer: json

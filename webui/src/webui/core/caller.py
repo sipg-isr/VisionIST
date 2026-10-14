@@ -20,6 +20,8 @@ Reset semantics
 
 * command is ``"reset"``      -> that call *is* the reset (no reset_first)
 * stateful box (``session``)  -> never auto-reset (it would kill the sequence)
+* ``reset_first: false`` on the def -> the box's reset is not a no-op (colmap:
+  it cancels the running reconstruction) — never auto-ping it
 * stateless box with box_key  -> safe no-op ``reset_first`` (client default)
 """
 
@@ -232,10 +234,9 @@ def build_call(defn: BoxDef, req: CallRequest, store: ArtifactStore) -> CallSpec
         config = {defn.box_key: body}
 
     # ---- reset semantics ----------------------------------------------------
-    if command == "reset":
-        reset_first = False
-    elif defn.session is not None:
-        reset_first = False              # never break a live tracking session
+    if command == "reset" or defn.session is not None or not defn.reset_first:
+        reset_first = False              # the call is the reset / never break a live
+                                         # session / a reset that has teeth (colmap)
     else:
         reset_first = defn.box_key is not None
     return CallSpec(

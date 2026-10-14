@@ -16,7 +16,8 @@ def reg():
 
 
 EXPECTED_IDS = {"clip", "tapnext", "lang_sam", "sbert", "vggt", "moge", "yolo",
-                "unimatch", "features", "opencv", "lightglue", "d4rt", "sfm"}
+                "unimatch", "features", "opencv", "lightglue", "d4rt", "sfm",
+                "mediapipe", "open_clip", "pycv", "colmap"}
 
 
 def test_all_defs_load(reg):
@@ -46,6 +47,17 @@ def test_clip(reg):
     assert {f.field for f in d.inputs} == {"images", "texts"}
     assert d.input_mosaic is True   # default: the "inputs" mosaic still shows
     assert any(p.key == "model" for p in d.parameters)
+
+
+def test_colmap(reg):
+    d = reg.get("colmap")
+    assert d.box_key == "colmap"
+    assert set(d.command.values) == {"reconstruct", "log", "reset"}
+    # the box's reset cancels a running reconstruction — no auto reset ping
+    assert d.reset_first is False
+    assert {f.field for f in d.inputs} == {"images", "image_names"}
+    scene = [r for r in d.results if r.visualizer == "scene"]
+    assert scene and scene[0].params["colors"] == "point_colors"
 
 
 def test_tapnext_is_stateful_sessioned(reg):
