@@ -27,7 +27,7 @@ class CallBody(BaseModel):
     action: str | None = None
     session_id: str | None = None
     method: str | None = None
-    timeout: float = Field(600.0, ge=1.0, le=3600)
+    timeout: float = Field(600.0, ge=1.0, le=86400)
 
 
 def create_call_router(registry: Registry, fleet: Fleet, store: ArtifactStore,

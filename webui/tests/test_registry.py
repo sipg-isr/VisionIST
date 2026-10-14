@@ -59,6 +59,8 @@ def test_colmap(reg):
     assert d.watch is not None
     assert d.watch.command == "log" and d.watch.field == "log"
     assert d.watch.parameters == {"tail": 40}
+    # long jobs must not be clipped by the console's 600 s default
+    assert d.timeout_s is not None and d.timeout_s >= 3600
     assert {f.field for f in d.inputs} == {"images", "image_names"}
     scene = [r for r in d.results if r.visualizer == "scene"]
     assert scene and scene[0].params["colors"] == "point_colors"

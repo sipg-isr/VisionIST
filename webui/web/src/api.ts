@@ -85,6 +85,7 @@ export interface BoxDef {
   input_mosaic?: boolean;
   reset_first?: boolean;
   watch?: WatchDef | null;
+  timeout_s?: number | null;
   inputs: InputField[];
   actions: ActionDef[];
   command: CommandSpec | null;

@@ -284,7 +284,7 @@ function Console({ def }: { def: BoxDef }) {
         command: command ?? null,
         action: actionSel,
         session_id: def.session ? (session || null) : null,
-        timeout: 600,
+        timeout: def.timeout_s ?? 600,
       });
       const st = res.status;
       const okView: View = { kind: "res", res };

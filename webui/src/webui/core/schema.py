@@ -245,6 +245,11 @@ class BoxDef(_Def):
                                            # reconstruction): the webui then never auto-sends
                                            # the client's "reset ping" before other commands
     watch: Optional[WatchDef] = None       # live-log polling while a call is in flight
+    timeout_s: Optional[float] = Field(None, gt=0, le=86400)
+                                           # client-side deadline for the MAIN call (seconds).
+                                           # None = the console's default (600).  Long-running boxes
+                                           # declare a larger one (colmap ground truth); the box's
+                                           # own max_runtime_s parameter stays the semantic budget
     experimental: bool = False
     input_mosaic: bool = True              # hide the "inputs" image mosaic when the
                                            # result already shows the input (e.g. yolo's

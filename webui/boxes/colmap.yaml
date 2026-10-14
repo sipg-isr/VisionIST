@@ -30,6 +30,13 @@ watch:
   parameters:
     tail: 40
 
+# Ground-truth jobs can legitimately run for hours on large sets: give the
+# client side a 24 h deadline instead of the console's default 600 s (that
+# deadline was the "timeout" users see on long jobs: the gRPC call dies at
+# 600 s while COLMAP is still working, and the 502 reaches the browser).
+# The box's own `max_runtime_s` parameter stays the semantic budget.
+timeout_s: 86400
+
 experimental: true
 
 input_mosaic: true   # the input frames stay useful at a glance; the scene is a different view

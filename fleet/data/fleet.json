@@ -8,7 +8,7 @@
       "note": "CLIP image and text embeddings with their cross-modal similarity",
       "added": 1791928970.9871137,
       "last_probe": {
-        "at": 1791929630.9591188,
+        "at": 1791985764.4246795,
         "addr": "clip:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -26,7 +26,7 @@
       "note": "OpenD4RT 4D reconstruction and tracking - 3D point tracks, point clouds and camera poses from a video",
       "added": 1791928970.9871235,
       "last_probe": {
-        "at": 1791929631.1811097,
+        "at": 1791985764.430187,
         "addr": "d4rt:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -44,7 +44,7 @@
       "note": "SIFT keypoints in the SIFT-Extractor layout: (2+128) x N, annotated JPEGs, MATLAB .mat",
       "added": 1791928970.9871275,
       "last_probe": {
-        "at": 1791929631.1041996,
+        "at": 1791985764.4311273,
         "addr": "features:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -62,7 +62,7 @@
       "note": "Text-guided segmentation with LangSAM: phrases in, masks out",
       "added": 1791928970.987131,
       "last_probe": {
-        "at": 1791929631.1131344,
+        "at": 1791985764.4356246,
         "addr": "lang_sam:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -80,7 +80,7 @@
       "note": "SuperPoint/DISK features and LightGlue matching, pairwise or as a sliding-window stream",
       "added": 1791928970.9871345,
       "last_probe": {
-        "at": 1791929631.1823146,
+        "at": 1791985764.4496477,
         "addr": "lightglue:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -98,7 +98,7 @@
       "note": "MediaPipe landmarks: 21-point hands, 33-point body pose, 478-point face mesh, on CPU",
       "added": 1791928970.9871378,
       "last_probe": {
-        "at": 1791929631.1471746,
+        "at": 1791985764.4482007,
         "addr": "mediapipe:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -116,7 +116,7 @@
       "note": "MoGe-3 monocular geometry: metric depth, point map, normals, intrinsics",
       "added": 1791928970.9871411,
       "last_probe": {
-        "at": 1791929631.188904,
+        "at": 1791985764.6566808,
         "addr": "moge:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -134,7 +134,7 @@
       "note": "OpenCLIP image and text embeddings from any open_clip model and pretrained tag, with cosine similarity and zero-shot probabilities",
       "added": 1791928970.9871442,
       "last_probe": {
-        "at": 1791929631.3282921,
+        "at": 1791985764.672845,
         "addr": "open_clip:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -152,7 +152,7 @@
       "note": "Classic feature extraction and matching: SIFT/ORB via FLANN, or SuperPoint/DISK via LightGlue, plus a RANSAC fundamental matrix",
       "added": 1791928970.9871523,
       "last_probe": {
-        "at": 1791929631.334176,
+        "at": 1791985764.6684752,
         "addr": "opencv:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -170,7 +170,7 @@
       "note": "Runs user-supplied Python against OpenCV - a script or a one-line expression in, named arrays out",
       "added": 1791928970.9871557,
       "last_probe": {
-        "at": 1791929631.414942,
+        "at": 1791985764.6829476,
         "addr": "pycv:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -188,7 +188,7 @@
       "note": "Sentence-BERT text embeddings and their pairwise similarity",
       "added": 1791928970.987159,
       "last_probe": {
-        "at": 1791929631.4578054,
+        "at": 1791985764.6928568,
         "addr": "sbert:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -206,7 +206,7 @@
       "note": "SfM: camera poses + 3D points from feature tracks and monocular depth, with partial (missing) tracks",
       "added": 1791928970.9871626,
       "last_probe": {
-        "at": 1791929631.459204,
+        "at": 1791985764.7339895,
         "addr": "sfm:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -224,7 +224,7 @@
       "note": "TAPNext point tracking with the Tomasi-Kanade observation matrix",
       "added": 1791928970.987166,
       "last_probe": {
-        "at": 1791929631.458433,
+        "at": 1791985764.8851023,
         "addr": "tapnext:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -242,7 +242,7 @@
       "note": "Unified dense matching: optical flow, stereo disparity, and multi-view depth",
       "added": 1791928970.9871693,
       "last_probe": {
-        "at": 1791929631.6203773,
+        "at": 1791985764.8969631,
         "addr": "unimatch:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -260,7 +260,7 @@
       "note": "VGGT multi-view 3D reconstruction: world points, per-view depth, camera poses, and a GLB",
       "added": 1791928970.9871726,
       "last_probe": {
-        "at": 1791929631.619761,
+        "at": 1791985764.9441369,
         "addr": "vggt:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -278,7 +278,7 @@
       "note": "YOLO object detection with always-on tracking, on images or video",
       "added": 1791928970.987178,
       "last_probe": {
-        "at": 1791929631.6783311,
+        "at": 1791985764.958384,
         "addr": "yolo:8061",
         "service": "pipeline.PipelineService",
         "methods": [
@@ -296,7 +296,7 @@
       "note": null,
       "added": 1791978899.8789089,
       "last_probe": {
-        "at": 1791978899.9332297,
+        "at": 1791985764.998872,
         "addr": "colmap-test:8061",
         "service": "pipeline.PipelineService",
         "methods": [
