@@ -105,6 +105,18 @@ def test_migrated_boxes_are_present(reg, store):
     assert {"opencv", "lightglue", "d4rt", "colmap"} <= ids
 
 
+def test_colmap_def_wiring(reg, store):
+    """colmap is the first long-running box: no reset ping + a watch poll."""
+    d = reg.get("colmap")
+    assert d.reset_first is False
+    assert d.watch is not None and d.watch.command == "log"
+    assert d.watch.field == "log" and d.watch.parameters.get("tail")
+    # and the `log` command is legal without any images on board
+    spec = build_call(d, CallRequest(command="log"), store)
+    assert spec.config["colmap"]["command"] == "log"
+    assert spec.reset_first is False
+
+
 def test_colmap_reset_ping_is_disabled(reg, store):
     """colmap's reset cancels the running reconstruction — the client's
     "safe no-op" reset ping would kill a long job, so the definition opts

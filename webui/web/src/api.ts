@@ -66,6 +66,13 @@ export interface ResultDef {
   params: Record<string, unknown>;
 }
 
+export interface WatchDef {
+  command: string;
+  field?: string;
+  every_s?: number;
+  parameters?: Record<string, unknown>;
+}
+
 export interface BoxDef {
   id: string;
   name: string;
@@ -76,6 +83,8 @@ export interface BoxDef {
   note?: string | null;
   experimental: boolean;
   input_mosaic?: boolean;
+  reset_first?: boolean;
+  watch?: WatchDef | null;
   inputs: InputField[];
   actions: ActionDef[];
   command: CommandSpec | null;

@@ -8,7 +8,7 @@
  *  No box knowledge in here: everything comes from ``def`` + the wire
  *  contract in api.ts (backend = core/caller.py build_call, frozen).
  */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api, ApiError } from "../api";
 import type { BoxDef, CallResult, FleetEntry, ParamDef, SerRef } from "../api";
 import { Widget } from "../form/widgets";
@@ -140,6 +140,10 @@ function Console({ def }: { def: BoxDef }) {
   });
   const [session, setSession] = useState("");
   const [calling, setCalling] = useState(false);
+  const [liveLog, setLiveLog] = useState<CallResult | null>(null);
+  const [watching, setWatching] = useState(false);
+  const stopRef = useRef<(() => void) | null>(null);
+  useEffect(() => () => { stopRef.current?.(); }, []);   // unmount: stop any live poll
   const [view, setView] = useState<View | null>(null);
   const [history, setHistory] = useState<HistItem[]>([]);
 
@@ -255,6 +259,20 @@ function Console({ def }: { def: BoxDef }) {
   const doCall = useCallback(async (over: { command?: string | null } = {}) => {
     if (!fleetId) return;
     setCalling(true);
+    // def `watch`: poll the live-log command while the main call is in flight
+    let stop: (() => void) | null = null;
+    if (def.watch) {
+      const w = def.watch;
+      const iv = setInterval(() => {
+        api.call({ fleet_id: fleetId!, command: w.command, parameters: w.parameters || {}, data: {}, section: {},
+                   action: null, session_id: null, timeout: 60 })
+          .then((r) => setLiveLog(r))
+          .catch(() => { /* a single failed poll is not fatal */ });
+      }, (w.every_s ?? 5) * 1000);
+      stop = () => { clearInterval(iv); setWatching(false); };
+      stopRef.current = stop;
+      setWatching(true);
+    }
     try {
       const command = over.command !== undefined ? over.command : commandSel;
       const res = await api.call({
@@ -298,7 +316,17 @@ function Console({ def }: { def: BoxDef }) {
         ...h,
       ].slice(0, 10));
     } finally {
+      stopRef.current = null;
       setCalling(false);
+      if (stop) {
+        // one last poll for the terminal state, then stop
+        const w = def.watch!;
+        api.call({ fleet_id: fleetId!, command: w.command, parameters: w.parameters || {}, data: {}, section: {},
+                   action: null, session_id: null, timeout: 60 })
+          .then((r) => setLiveLog(r))
+          .catch(() => { /* keep last snapshot */ })
+          .then(stop);
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
@@ -483,6 +511,29 @@ function Console({ def }: { def: BoxDef }) {
 
         {/* ------------------------------------------------------ results (R) */}
         <div>
+        {/* live log — the def's `watch` command poll, running while a call is
+            in flight (the button stays busy) or showing the last snapshot */}
+        {(liveLog || watching) && (
+          <div className="panel" style={{ marginBottom: 12 }}>
+            <div className="resulthead">
+              <StatusChip status={liveLog?.status ?? null} />
+              {liveLog?.config_extra?.running !== undefined && (
+                <span className="chip dim">running: {String(liveLog.config_extra.running)}</span>
+              )}
+              {liveLog?.config_extra?.stage != null && (
+                <span className="chip dim">stage: {String(liveLog.config_extra.stage)}</span>
+              )}
+              {typeof liveLog?.config_extra?.elapsed_s === "number" && (
+                <span className="chip dim">elapsed {fmtNum(Number(liveLog.config_extra.elapsed_s))} s</span>
+              )}
+              {watching && <span className="chip">· polling live log…</span>}
+            </div>
+            <TextBlock
+              value={(liveLog?.fields || {})[def.watch?.field ?? "log"]}
+              title="live log — box output"
+            />
+          </div>
+        )}
           {view === null && (
             <div className="panel">
               <div className="empty">

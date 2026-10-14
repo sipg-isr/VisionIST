@@ -147,6 +147,24 @@ class CommandSpec(_Def):
     default: Optional[str] = None
 
 
+class WatchDef(_Def):
+    """Live-log polling while a long call is in flight (generic — the def
+    names the data:
+
+    * ``command``   — the command to poll (e.g. ``log``)
+    * ``field``     — which response field to render as text
+    * ``every_s``   — poll interval
+    * ``parameters``— extra parameters for that command (e.g. ``tail``)
+
+    The console re-fires that command every ``every_s`` until the main call
+    returns; nothing in the core names a box."""
+
+    command: str
+    field: str = "log"
+    every_s: float = Field(5.0, gt=0, le=60)
+    parameters: dict[str, Any] = Field(default_factory=dict)
+
+
 class SessionDef(_Def):
     """Multi-session state (tapnext pattern): ``session_id`` keys all state.
 
@@ -226,6 +244,7 @@ class BoxDef(_Def):
                                            # (e.g. colmap's reset CANCELS the running
                                            # reconstruction): the webui then never auto-sends
                                            # the client's "reset ping" before other commands
+    watch: Optional[WatchDef] = None       # live-log polling while a call is in flight
     experimental: bool = False
     input_mosaic: bool = True              # hide the "inputs" image mosaic when the
                                            # result already shows the input (e.g. yolo's

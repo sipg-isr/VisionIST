@@ -55,6 +55,10 @@ def test_colmap(reg):
     assert set(d.command.values) == {"reconstruct", "log", "reset"}
     # the box's reset cancels a running reconstruction — no auto reset ping
     assert d.reset_first is False
+    # and the long call is watchable: the console polls this command
+    assert d.watch is not None
+    assert d.watch.command == "log" and d.watch.field == "log"
+    assert d.watch.parameters == {"tail": 40}
     assert {f.field for f in d.inputs} == {"images", "image_names"}
     scene = [r for r in d.results if r.visualizer == "scene"]
     assert scene and scene[0].params["colors"] == "point_colors"

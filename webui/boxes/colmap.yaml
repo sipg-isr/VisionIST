@@ -16,9 +16,19 @@ note: >
   one (single_camera box default); fixed intrinsics and per-image cameras
   need the raw config (see the box README).
 
-# This box's reset has teeth (it cancels the running reconstruction), so
-# the webui must never auto-send the "safe no-op" reset ping before calls.
+# This box's reset has teeth (it cancels the running reconstruction), so the
+# webui must never auto-send the "safe no-op" reset ping before other calls.
 reset_first: false
+
+# While a long call (reconstruct) is in flight, the SPA polls `log` in the
+# background every `every_s` seconds and streams the tail into a live panel
+# (the box's second worker answers it; the main call is not touched).
+watch:
+  command: log
+  field: log
+  every_s: 5
+  parameters:
+    tail: 40
 
 experimental: true
 
