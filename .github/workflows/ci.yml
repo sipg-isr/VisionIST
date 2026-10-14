@@ -20,7 +20,7 @@ jobs:
       - name: Install (CPU torch, so the tensor-codec tests run)
         run: |
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install pytest httpx -e visionist_client -e webui
+          pip install -e visionist_client -e "webui[dev]"   # [dev] = pytest, httpx, pillow (test fixtures)
       - name: Client smoke tests (in-process fake boxes, no GPU)
         run: |
           python visionist_client/tests/fake_box_smoke.py
