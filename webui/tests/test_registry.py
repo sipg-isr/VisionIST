@@ -17,7 +17,7 @@ def reg():
 
 EXPECTED_IDS = {"clip", "tapnext", "lang_sam", "sbert", "vggt", "moge", "yolo",
                 "unimatch", "features", "opencv", "lightglue", "d4rt", "sfm",
-                "mediapipe", "open_clip", "pycv", "colmap"}
+                "mediapipe", "open_clip", "pycv", "colmap", "abot_recon"}
 
 
 def test_all_defs_load(reg):
@@ -173,6 +173,31 @@ def test_unimatch_is_dense_estimation(reg):
         assert params[f].get("spatial") == "heat"
     flow = next(r for r in d.results if r.field == "flow")
     assert flow.base == "images"   # quiver over the first uploaded image
+    assert d.results[-1].field == "*"
+
+
+def test_abot_recon_streaming_recon(reg):
+    """abot_recon: long-sequence streaming reconstruction — video in, scene out."""
+    d = reg.get("abot_recon")
+    assert d.box_key == "abot_recon"
+    assert set(d.command.values) == {"reconstruct", "trajectory", "reset"}
+    assert d.command.default == "reconstruct"
+    assert {f.field for f in d.inputs} == {"images", "video"}   # mutually exclusive on the box side
+    params = {p.key for p in d.parameters}
+    # booleans (loop_closure, output_*) deliberately OUT of the form: the wire
+    # passes parameters raw — a select's "false" string would read as truthy
+    # on the box side (same rule as moge's fp16)
+    assert params == {"max_frames", "frame_step", "dense_stride",
+                      "confidence_threshold", "device"}
+    scene = [r for r in d.results if r.visualizer == "scene"]
+    assert scene
+    s = scene[0].params
+    assert s["dense_points"] == "world_points"   # the global cloud
+    assert s["cameras"] == "camera_poses"
+    # this box hands out camera→world matrices — the SceneView default is
+    # world→camera (sfm/colmap), so the convention is declared data here
+    assert s["cameras_convention"] == "camera_to_world"
+    assert s["image_size"] == [504, 280]         # [W, H] — the model's fixed grid
     assert d.results[-1].field == "*"
 
 

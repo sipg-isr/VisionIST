@@ -873,17 +873,23 @@ export function ResultBlock({
     case "scene": {
       // reconstruction view; params name the keys, read from the field when
       // it is a dict (a pipeline's assembled scene), else from the response's
-      // top-level fields (a box returning points / cameras side by side)
+      // top-level fields (a box returning points / cameras side by side).
+      // A param may also be a LITERAL value (image_size: [504, 280]) —
+      // strings are keys, anything else is the value itself.
       const p = (rd.params ?? {}) as Record<string, unknown>;
       const src = v && typeof v === "object" && !Array.isArray(v) && !isRef(v)
         ? (v as Record<string, unknown>) : (res.fields ?? {});
-      const pick = (k: string): unknown => (typeof p[k] === "string" ? src[p[k] as string] : undefined);
+      const pick = (k: string): unknown => {
+        const pv = p[k];
+        return typeof pv === "string" ? src[pv] : (pv ?? undefined);
+      };
       return (
         <SceneView
           title={title}
           points={pick("points")}
           colors={pick("colors")}
           cameras={pick("cameras")}
+          camerasConvention={typeof p["cameras_convention"] === "string" ? p["cameras_convention"] as string : undefined}
           densePoints={pick("dense_points")}
           denseColors={pick("dense_colors")}
           denseFrames={pick("dense_frames")}

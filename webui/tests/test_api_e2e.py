@@ -20,7 +20,11 @@ def client(tmp_path):
     env = AppEnv(
         host="127.0.0.1", port=0,
         data_dir=tmp_path / "data", boxes_dir=BOXES_DIR,
-        artifact_ttl=600, max_artifact_bytes=10_000_000,
+        artifact_ttl=600,   # generous in tests
+        # a faithful abot_recon response (280×504 point maps) is > 10 MB — keep
+        # the test budget far above the real payloads so FIFO eviction does not
+        # eat the small fixture uploads (production default: 2 GB)
+        max_artifact_bytes=150_000_000,
         max_upload_bytes=1_000_000,
     )
     app = create_app(env)
@@ -51,7 +55,7 @@ def test_defs_endpoint_shape(client):
     assert len(body["defs"]) >= 12
     assert {d["id"] for d in body["defs"]} >= {
         "clip", "tapnext", "lang_sam", "sbert", "vggt", "moge", "yolo"}
-    assert {"opencv", "lightglue", "d4rt"} <= {d["id"] for d in body["defs"]}
+    assert {"opencv", "lightglue", "d4rt", "abot_recon"} <= {d["id"] for d in body["defs"]}
     assert "image_upload" in body["vocabulary"]["widgets"]
     assert "overlay" in body["vocabulary"]["visualizers"]
     assert "flow_field" in body["vocabulary"]["visualizers"]
@@ -252,6 +256,75 @@ def test_yolo_full_round_trip(client, fake_yolo):
     assert rb.status_code == 200, rb.text
     bb = rb.json()
     assert bb["status"] == "error" and "not both" in bb["error"]
+
+
+def test_abot_recon_full_round_trip(client, fake_abot):
+    """Full panel path for the streaming reconstruction box: namespaced
+    ``abot_recon`` section, declared ``numpy`` encodings, camera→world poses
+    inline (the scene's cameras source), point maps as typed buffers (the
+    scene's dense points), ``trajectory`` = poses only, plus the box's
+    in-band validation (field exclusivity, ≥ 3 frames)."""
+    fid = _seed(client, fake_abot, "abot recon lab", "abot_recon")
+
+    up = [client.post("/api/upload",
+                      files={"file": (f"f{n}.jpg", io.BytesIO(b"frame-n"),
+                                      "image/jpeg")}) for n in range(4)]
+    assert all(u.status_code == 201 for u in up), [u.text for u in up]
+    refs = [u.json()["ref"] for u in up]
+
+    # --- reconstruct ----------------------------------------------------
+    r = client.post("/api/call", json={
+        "fleet_id": fid,
+        "data": {"images": refs},
+        "parameters": {"dense_stride": 2},
+    })
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["box"] == "abot_recon" and body["status"] == "done"
+    assert body["declared_encoding"]["world_points"] == "numpy"
+    assert body["config_extra"]["model_hw"] == [280, 504]       # [H, W], the fixed grid
+
+    # poses: inline (T×4×4) — the scene reads these as camera→world frustums
+    cp = body["fields"]["camera_poses"]
+    assert cp["kind"] == "array" and cp["shape"] == [4, 4, 4]
+    assert cp["values"][0][0][0] == 1.0 and cp["values"][0][3][3] == 1.0
+
+    # point maps: typed buffer past the inline cap (dense_stride 2 → Td = 2)
+    wp = body["fields"]["world_points"]
+    assert wp["kind"] == "buffer" and wp["shape"] == [2, 280, 504, 3]
+    tok = wp["url"].rsplit("/", 1)[-1]
+    g = client.get(f"/api/file/{tok}")
+    assert g.status_code == 200 and len(g.content) == 2 * 280 * 504 * 3 * 4
+
+    # --- trajectory: poses only (cheap verb, no point maps) -------------
+    rt = client.post("/api/call", json={
+        "fleet_id": fid, "data": {"images": refs}, "command": "trajectory"})
+    assert rt.status_code == 200, rt.text
+    bt = rt.json()
+    assert bt["status"] == "done" and bt["config_extra"]["command"] == "trajectory"
+    assert bt["fields"]["camera_poses"]["shape"] == [4, 4, 4]
+    for f in ("world_points", "local_points", "confidence"):
+        assert f not in bt["fields"]
+
+    # --- video input (single b field → server-side decode) ---------------
+    upv = client.post("/api/upload",
+                      files={"file": ("clip.mp4",
+                                      io.BytesIO(b"\x00\x00\x00\x14ftypisom"),
+                                      "video/mp4")})
+    assert upv.status_code == 201, upv.text
+    rv = client.post("/api/call", json={
+        "fleet_id": fid, "data": {"video": upv.json()["ref"]}})
+    assert rv.status_code == 200, rv.text
+    assert rv.json()["status"] == "done"
+
+    # --- box validation: in-band errors, no HTTP 500 ---------------------
+    rb = client.post("/api/call", json={"fleet_id": fid,
+                                        "data": {"images": refs[:2]}})
+    assert rb.status_code == 200 and "3 frames" in rb.json()["error"]
+    ru = client.post("/api/call", json={"fleet_id": fid,
+                                        "data": {"images": refs,
+                                                 "video": upv.json()["ref"]}})
+    assert ru.status_code == 200 and "not both" in ru.json()["error"]
 
 
 def test_file_range_partial_content(client, fake_yolo):

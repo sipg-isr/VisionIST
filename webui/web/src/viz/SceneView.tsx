@@ -1,13 +1,21 @@
 /** scene visualizer — a reconstruction in one orbiting three.js view:
  *
  *   - sparse points  (P, 3), optional colors (P, 3) in 0..1
- *   - cameras        (F, 3, 4) world → camera [R | t]: a frustum per camera
- *                    (first one highlighted) + the path through the centres;
- *                    frustum shape from intrinsics (3, 3, pixels) + image_size
- *                    [W, H] when given, else a 60° 4:3 default
- *   - dense points   (N, 3) + colors (N, 3) + dense_frames (N,) — e.g. depth
- *                    maps back-projected per frame; colorable by frame to see
- *                    which frame each layer came from
+ *   - cameras        (F, 3, 4) world → camera [R | t] (default) OR (F, 4, 4)
+ *                    camera → world, when the def declares
+ *                    `cameras_convention: camera_to_world` — a frustum per
+ *                    camera + the path through the centres, coloured in
+ *                    frame order (viridis first → last, first camera white)
+ *                    — legible even when the camera barely moves; a
+ *                    cameras-only scene (no points) is legal, for pose-only
+ *                    replies; frustum shape from intrinsics (3, 3, pixels)
+ *                    + image_size [W, H] when given, else a 60° 4:3 default
+ *   - dense points   (N, 3) + optional dense_frames (N,) — e.g. depth/point
+ *                    maps per frame. When the dense source is a (T, H, W, 3)
+ *                    grid and no dense_frames is declared, the per-point
+ *                    frame index is derived from the shape (point i →
+ *                    frame i / (H·W)), so the cloud can be coloured by the
+ *                    frame each layer came from.
  *
  *  Coordinates are OpenCV camera conventions (x right, y down, z forward);
  *  the view flips y and z so "up" is up and camera 0 looks into the screen.
@@ -47,6 +55,50 @@ function f32(a: Num | null): Float32Array | null {
   return a instanceof Float32Array ? a : Float32Array.from(a);
 }
 
+/** Per-level lengths of a regular nested array (inline values only). */
+function inferShape(v: unknown): number[] | null {
+  const s: number[] = [];
+  let cur: unknown = v;
+  while (Array.isArray(cur) && cur.length > 0) { s.push(cur.length); cur = cur[0]; }
+  return s.length ? s : null;
+}
+
+/** Dense cloud in one fetch, plus its per-frame index: explicit in the
+ *  buffer ref (shape), otherwise inferred from the inline nesting. A
+ *  (T, H, W, 3) grid — the common per-frame point/depth-map shape — yields
+ *  a frame index per point (point i → i / (H·W)). Nothing here knows a box. */
+async function denseTyped(
+  v: unknown,
+): Promise<{ data: Float32Array | null; frames: Num | null }> {
+  if (v === undefined || v === null) return { data: null, frames: null };
+  let raw: ArrayLike<number> | null = null;
+  let shape: number[] | null = null;
+  if (isRef(v)) {
+    const t = await fetchTyped(v as SerValue);
+    if (!t || t.data.length === 0) return { data: null, frames: null };
+    raw = t.data;
+    shape = t.shape ?? null;
+  } else {
+    const flat = flattenNumbers(v);
+    if (!flat || flat.length === 0) return { data: null, frames: null };
+    raw = flat;
+    shape = inferShape(v);
+  }
+  const data = new Float32Array(raw as number[]);
+  let frames: Num | null = null;
+  if (shape && shape.length === 4 && Number(shape[3]) === 3) {
+    const T = Math.max(1, Number(shape[0])), H = Number(shape[1]), W = Number(shape[2]);
+    const N = data.length / 3;
+    if (T * H * W === N) {
+      const per = H * W;
+      const fr = new Float64Array(N);
+      for (let i = 0; i < N; i++) fr[i] = Math.floor(i / per);
+      frames = fr;
+    }
+  }
+  return { data, frames };
+}
+
 /** three.js vertex colors are 0..1; boxes may hand over integer 0..255
  *  RGB (e.g. uint8 scene colours) — rescaled (sampled, cheap), otherwise
  *  every point would clamp to washed-out white.  Box-agnostic heuristic: */
@@ -76,11 +128,13 @@ function rgbOf(css: string): [number, number, number] {
 
 export function SceneView({
   title, points, colors, cameras, densePoints, denseColors, denseFrames, intrinsics, imageSize,
+  camerasConvention = "world_to_camera",
 }: {
   title?: string;
   points: unknown;
   colors?: unknown;
   cameras?: unknown;
+  camerasConvention?: string;   // "world_to_camera" (default, e.g. sfm/colmap) | "camera_to_world"
   densePoints?: unknown;
   denseColors?: unknown;
   denseFrames?: unknown;
@@ -92,8 +146,9 @@ export function SceneView({
   const [showSparse, setShowSparse] = useState(true);
   const [showDense, setShowDense] = useState(true);
   const [showCams, setShowCams] = useState(true);
-  const [byFrame, setByFrame] = useState(false);
+  const [byFrame, setByFrame] = useState(true);
   const [ptSize, setPtSize] = useState(1);
+  const [frustumScale, setFrustumScale] = useState(1);
 
   useEffect(() => {
     let alive = true;
@@ -101,20 +156,25 @@ export function SceneView({
     setErr(null);
     void (async () => {
       try {
-        const [p, c, cam, d, dc, df, K] = await Promise.all([
+        const [p, c, cam, denseArr, dc, df, K] = await Promise.all([
           numbers(points), numbers(colors), numbers(cameras),
-          numbers(densePoints), numbers(denseColors), numbers(denseFrames), numbers(intrinsics),
+          denseTyped(densePoints), numbers(denseColors), numbers(denseFrames), numbers(intrinsics),
         ]);
         const sz = flattenNumbers(imageSize);
         if (!alive) return;
-        if (!p && !d) { setErr("no points in this response"); return; }
+        const d = denseArr.data;
+        if (!p && !d && !cam) { setErr("no points or cameras in this response"); return; }
+        // an explicit dense_frames wins; otherwise the derived one (above),
+        // which keeps the “color by source frame” toggle available for any
+        // per-frame grid cloud
+        const frames = df ?? denseArr.frames;
         setData({
           points: p ? toView(Float32Array.from(p)) : null,
           colors: unitize(f32(c)),
           cameras: cam,
-          dense: d ? toView(Float32Array.from(d)) : null,
+          dense: d ? toView(d) : null,
           denseColors: unitize(f32(dc)),
-          denseFrames: df,
+          denseFrames: frames,
           K: K && K.length >= 9 ? K : null,
           size: sz && sz.length >= 2 ? [sz[0], sz[1]] : null,
         });
@@ -125,7 +185,7 @@ export function SceneView({
     return () => { alive = false; };
   }, [points, colors, cameras, densePoints, denseColors, denseFrames, intrinsics, imageSize]);
 
-  const nCams = data?.cameras ? Math.floor(data.cameras.length / 12) : 0;
+  const nCamsRaw = data?.cameras ? data.cameras.length : 0;
   const nSparse = data?.points ? data.points.length / 3 : 0;
   const nDense = data?.dense ? data.dense.length / 3 : 0;
 
@@ -143,23 +203,31 @@ export function SceneView({
             {nDense > 0 && (
               <label><input type="checkbox" checked={showDense} onChange={(e) => setShowDense(e.target.checked)} /> depth ({nDense.toLocaleString()})</label>
             )}
-            {nCams > 0 && (
-              <label><input type="checkbox" checked={showCams} onChange={(e) => setShowCams(e.target.checked)} /> cameras ({nCams})</label>
+            {nCamsRaw > 0 && (
+              <label><input type="checkbox" checked={showCams} onChange={(e) => setShowCams(e.target.checked)} /> cameras ({Math.floor(nCamsRaw / (camerasConvention === "camera_to_world" ? 16 : 12))})</label>
             )}
             {nDense > 0 && data.denseFrames && (
-              <label title="color the depth points by the frame they came from (viridis: first → last)">
-                <input type="checkbox" checked={byFrame} onChange={(e) => setByFrame(e.target.checked)} /> color depth by frame
+              <label title="color the dense points by the frame they came from (viridis: first → last) — per-frame layering and motion">
+                <input type="checkbox" checked={byFrame} onChange={(e) => setByFrame(e.target.checked)} /> color cloud by source frame
               </label>
             )}
             <label>point size
               <input type="range" min={0.25} max={4} step={0.25} value={ptSize}
                 onChange={(e) => setPtSize(Number(e.target.value))} style={{ width: 90, marginLeft: 6 }} />
             </label>
+            {nCamsRaw > 0 && (
+              <label title="scale the camera frustums (1 = default)">
+                frustum
+                <input type="range" min={0.1} max={4} step={0.1} value={frustumScale}
+                  onChange={(e) => setFrustumScale(Number(e.target.value))} style={{ width: 90, marginLeft: 6 }} />
+              </label>
+            )}
           </div>
           <SceneCanvas data={data} showSparse={showSparse} showDense={showDense}
-            showCams={showCams} byFrame={byFrame} ptSize={ptSize} />
+            showCams={showCams} byFrame={byFrame} ptSize={ptSize} frustumScale={frustumScale}
+            c2w={camerasConvention === "camera_to_world"} />
           <div className="hint" style={{ fontFamily: "var(--mono)", fontSize: 11 }}>
-            drag: orbit · right-drag: pan · wheel: zoom · first camera = origin (highlighted)
+            drag: orbit · right-drag: pan · wheel: zoom · frustums run first → last in order (first camera white)
           </div>
         </>
       )}
@@ -188,39 +256,60 @@ function extent(pts: Float32Array, centres: number[][]): { center: THREE.Vector3
   }
   return {
     center: new THREE.Vector3((lo[0] + hi[0]) / 2, (lo[1] + hi[1]) / 2, (lo[2] + hi[2]) / 2),
-    size: Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2], 1e-6),
+    size: Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2], 1),   // ≥ 1 unit: a zero-extent scene (e.g. all cameras at the origin) would otherwise collapse to nothing
   };
 }
 
 function SceneCanvas({
-  data, showSparse, showDense, showCams, byFrame, ptSize,
+  data, showSparse, showDense, showCams, byFrame, ptSize, frustumScale, c2w,
 }: {
   data: SceneData; showSparse: boolean; showDense: boolean; showCams: boolean;
-  byFrame: boolean; ptSize: number;
+  byFrame: boolean; ptSize: number; frustumScale: number; c2w: boolean;
 }) {
   const holderRef = useRef<HTMLDivElement | null>(null);
   const objs = useRef<{ sparse?: THREE.Points; dense?: THREE.Points; cams?: THREE.Group;
     denseColor?: THREE.BufferAttribute; frameColor?: THREE.BufferAttribute;
-    base?: { sparse: number; dense: number } }>({});
+    base?: { sparse: number; dense: number }; camsGeo?: THREE.BufferGeometry;
+    frustumScaleFn?: (s: number) => void }>({});
   const [failed, setFailed] = useState<string | null>(null);
 
-  // camera centres + frustum geometry (view coordinates)
+  // camera centres + the per-camera “camera-frame point → world” map
   const camGeo = useMemo(() => {
     const cams = data.cameras;
-    if (!cams) return null;
-    const F = Math.floor(cams.length / 12);
+    if (!cams || !cams.length) return null;
+    // world_to_camera: (F, 3, 4) [R|t] — 12 per camera (sfm/colmap).
+    // camera_to_world:  (F, 4, 4) row-major — 16 per camera (abot_recon).
+    const per = c2w ? 16 : 12;
+    if (cams.length % per !== 0) return null;
+    const F = Math.floor(cams.length / per);
     const centres: number[][] = [];
-    const Rs: number[][] = [], ts: number[][] = [];
+    const apply: ((j: number, x: number[]) => number)[] = [];
     for (let f = 0; f < F; f++) {
-      const m = Array.from({ length: 12 }, (_, i) => Number(cams[f * 12 + i]));
-      const R = [m[0], m[1], m[2], m[4], m[5], m[6], m[8], m[9], m[10]];
-      const t = [m[3], m[7], m[11]];
-      // C = −Rᵀ t
-      centres.push([0, 1, 2].map((j) => -(R[j] * t[0] + R[3 + j] * t[1] + R[6 + j] * t[2])));
-      Rs.push(R); ts.push(t);
+      const o = f * per;
+      const R = [0, 1, 2, 4, 5, 6, 8, 9, 10].map((i) => Number(cams[o + i]));
+      if (c2w) {
+        // row-major 4×4: R = rows 0–2, translation = COLUMN 3 → indices 3, 7,
+        // 11 (NOT 12–14, which are the homogeneous last row — that read put
+        // every centre at the origin: the “rotating in place” bug)
+        const t = [Number(cams[o + 3]), Number(cams[o + 7]), Number(cams[o + 11])];
+        // centre = the translation; world point of camera-frame x = t + R·x.
+        // NOTE: R is stored row-major, so row j of R is R[3*j .. 3*j+2] and we take
+        // (R·x)[j] = R[3j]x0 + R[3j+1]x1 + R[3j+2]x2.  (Taking column j instead —
+        // R[j],R[j+3],R[j+6] — gives Rᵀ·x, which is correct for the [R|t] world->
+        // camera matrix below but WRONG here: with M=I (frame 0) it looked right,
+        // then every real rotation rendered the frustum on a different axis.)
+        centres.push(t);
+        apply.push((j, x) => t[j] + R[3 * j] * x[0] + R[3 * j + 1] * x[1] + R[3 * j + 2] * x[2]);
+      } else {
+        const t = [Number(cams[o + 3]), Number(cams[o + 7]), Number(cams[o + 11])];
+        // centre = −Rᵀt; world point of camera-frame x = Rᵀ(x − t)
+        const C = [0, 1, 2].map((j) => -(R[j] * t[0] + R[3 + j] * t[1] + R[6 + j] * t[2]));
+        centres.push(C);
+        apply.push((j, x) => R[j] * (x[0] - t[0]) + R[3 + j] * (x[1] - t[1]) + R[6 + j] * (x[2] - t[2]));
+      }
     }
-    return { F, centres, Rs, ts };
-  }, [data.cameras]);
+    return { F, centres, apply };
+  }, [data.cameras, c2w]);
 
   useEffect(() => {
     const holder = holderRef.current;
@@ -298,32 +387,68 @@ function SceneCanvas({
         const K9 = data.K ? Array.from({ length: Math.min(9, data.K.length) }, (_, i) => Number(data.K![i])) : null;
         const W = data.size ? data.size[0] : (K9 ? 2 * K9[2] : 4);
         const H = data.size ? data.size[1] : (K9 ? 2 * K9[5] : 3);
-        const K = K9 ?? [W / (2 * Math.tan(Math.PI / 6)), 0, W / 2,
-                          0, H / (2 * Math.tan(Math.PI / 6)), H / 2, 0, 0, 1];
-        const L = size * 0.06;
-        const corners = [[0, 0], [W, 0], [W, H], [0, H]].map(([u, v]) => [((u - K[2]) / K[0]) * L, ((v - K[5]) / K[4]) * L, L]);
-        const segs: number[] = [], segs0: number[] = [], path: number[] = [];
-        for (let f = 0; f < camGeo.F; f++) {
-          const R = camGeo.Rs[f], t = camGeo.ts[f], C = camGeo.centres[f];
-          // world point of a camera-frame point x: Rᵀ (x − t)
-          const w = corners.map((x) => [0, 1, 2].map((j) =>
-            R[j] * (x[0] - t[0]) + R[3 + j] * (x[1] - t[1]) + R[6 + j] * (x[2] - t[2])));
-          const out = f === 0 ? segs0 : segs;
-          const push = (a: number[], b: number[]) => out.push(a[0], -a[1], -a[2], b[0], -b[1], -b[2]);
-          for (let i = 0; i < 4; i++) { push(C, w[i]); push(w[i], w[(i + 1) % 4]); }
-          path.push(C[0], -C[1], -C[2]);
-        }
-        const line = (arr: number[], color: string, strip = false) => {
-          const g = new THREE.BufferGeometry();
-          g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(arr), 3));
-          const m = new THREE.LineBasicMaterial({ color });
-          disposables.push(g, m);
-          return strip ? new THREE.Line(g, m) : new THREE.LineSegments(g, m);
+        const baseL = size * 0.06;   // base frustum length — the “frustum” slider multiplies this
+        const base4 = [[0, 0], [W, 0], [W, H], [0, H]];
+        // corners for a given length L — keeps the image's W:H aspect (K9 pinhole where
+        // given; else one shared scale, longer side = L)
+        const cornersFor = (L: number): [number, number, number][] => {
+          if (K9) {
+            const fx = K9[0], fy = K9[4], cx = K9[2], cy = K9[5];
+            return base4.map(([u, v]) => [((u - cx) / fx) * L, ((v - cy) / fy) * L, L] as [number, number, number]);
+          }
+          const cx = W / 2, cy = H / 2, sc = L / (Math.max(W, H) / 2);
+          return base4.map(([u, v]) => [(u - cx) * sc, (v - cy) * sc, L] as [number, number, number]);
         };
-        if (segs.length) group.add(line(segs, "#5ba8ff"));
-        group.add(line(segs0, "#ff6b6b"));
-        if (path.length > 3) group.add(line(path, "#e8edf3", true));
+        const F = camGeo.F;
+        const camLut = F > 1
+          ? Array.from({ length: F }, (_, f) => rgbOf(heatColor(f / (F - 1))))
+          : [[1, 1, 1] as [number, number, number]];
+        // per-segment colour — frame-ordered (viridis first → last), first camera white;
+        // independent of the frustum size, computed once
+        const segCol: number[] = [];
+        for (let f = 0; f < F; f++) {
+          const col = f === 0 ? [1, 1, 1] : camLut[f];
+          for (let k = 0; k < 8; k++) segCol.push(col[0], col[1], col[2], col[0], col[1], col[2]);
+        }
+        // the camera path (through the centres) — fixed, never scaled with the frustums
+        const path: number[] = [];
+        for (let f = 0; f < F; f++) { const C0 = camGeo.centres[f]; path.push(C0[0], -C0[1], -C0[2]); }
+        // recompute frustum positions at length L, per camera, around that camera's
+        // centre — so a frustum resizes in place (colours + path stay fixed)
+        const segsFor = (L: number): Float32Array => {
+          const segs: number[] = [];
+          const corners = cornersFor(L);
+          for (let f = 0; f < F; f++) {
+            const C = camGeo.centres[f];
+            const w = corners.map((x) => [0, 1, 2].map((j) => camGeo.apply[f](j, x)));
+            const push = (a: number[], b: number[]) => segs.push(a[0], -a[1], -a[2], b[0], -b[1], -b[2]);
+            for (let i = 0; i < 4; i++) { push(C, w[i]); push(w[i], w[(i + 1) % 4]); }
+          }
+          return new Float32Array(segs);
+        };
+        const frustumGeo = new THREE.BufferGeometry();
+        frustumGeo.setAttribute("position", new THREE.BufferAttribute(segsFor(baseL), 3));
+        frustumGeo.setAttribute("color", new THREE.BufferAttribute(new Float32Array(segCol), 3));
+        const frustumMat = new THREE.LineBasicMaterial({ vertexColors: true });
+        disposables.push(frustumGeo, frustumMat);
+        group.add(new THREE.LineSegments(frustumGeo, frustumMat));
+        if (path.length > 3) {
+          const pg = new THREE.BufferGeometry();
+          pg.setAttribute("position", new THREE.BufferAttribute(new Float32Array(path), 3));
+          const pm = new THREE.LineBasicMaterial(); pm.color.set("#e8edf3");
+          disposables.push(pg, pm);
+          group.add(new THREE.Line(pg, pm));
+        }
         objs.current.cams = group;
+        objs.current.camsGeo = frustumGeo;
+        // frustum-size slider: rescale only the frustum geometry (cheap — no scene rebuild)
+        objs.current.frustumScaleFn = (s: number) => {
+          const g = objs.current.camsGeo;
+          if (!g) return;
+          g.setAttribute("position", new THREE.BufferAttribute(segsFor(baseL * Math.max(0.01, s)), 3));
+          (g.getAttribute("position") as THREE.BufferAttribute).needsUpdate = true;
+          g.computeBoundingSphere();
+        };
         root.add(group);
       }
 
@@ -386,7 +511,8 @@ function SceneCanvas({
       }
     }
     if (o.cams) o.cams.visible = showCams;
-  }, [showSparse, showDense, showCams, byFrame, ptSize, data, camGeo]);
+    o.frustumScaleFn?.(frustumScale);
+  }, [showSparse, showDense, showCams, byFrame, ptSize, frustumScale, data, camGeo]);
 
   return (
     <div>

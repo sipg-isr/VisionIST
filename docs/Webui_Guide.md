@@ -154,6 +154,23 @@ Def-driven extras (generic, no box names in code):
   `base: <input field>` names the uploaded images whose per-pixel RGB colors
   the points (fallback: xyz-range colors).  Non-finite/≤ 0 depths dropped.
   Used by moge (every depth pixel back-projected, photo-colored).
+* **`scene` cameras convention** — the scene visualizer takes cameras as
+  world→camera `(F, 3, 4) [R|t]` by default (sfm/colmap) OR camera→world
+  `(F, 4, 4)` when the def declares `cameras_convention: camera_to_world`
+  (abot_recon — declared data, never inferred). A **cameras-only scene** is
+  legal: for pose-only replies (`abot_recon` `trajectory`) the frustums +
+  path render without any point cloud. Scene param values may also be
+  **literals** (e.g. `image_size: [504, 280]` — the model's fixed grid —
+  frustum aspect), not just response-field names. Frustums are coloured
+  **in frame order** (viridis first → last, first camera white) so a slow
+  camera still reads as a ribbon instead of one blue blob. Dense clouds
+  shaped `(T, H, W, 3)` get their per-point **source-frame index derived
+  from the shape** when none is declared (point *i* → frame *i*/(H·W)), so
+  “color cloud by source frame” is on by default — a per-frame point-map
+  cloud shows its layers instead of rendering as one flat white cloud.
+  (Cozinha-video debugging: the camera path is real but small — ~0.7 units
+  over 256 frames — and the cloud carries no colors, hence both old
+  symptoms.)
 
 ## 6. Wire rules & serialization (what the SPA must handle)
 

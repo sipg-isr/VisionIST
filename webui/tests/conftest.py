@@ -297,6 +297,95 @@ def fake_yolo(std_pb):
     return FakeBox(FakeYolo(), pb2, pb2_grpc)
 
 
+@pytest.fixture
+def fake_abot(std_pb):
+    """Mimics the abot_recon box contract: an ordered ``images`` list or a
+    single ``video`` (mutually exclusive) in; camera poses as
+    camera→world (T, 4, 4) matrices on every reply, plus per-frame point
+    maps ``(Td, 280, 504, 3)`` + confidence with ``reconstruct`` — all
+    ``np.save`` blobs declared ``numpy`` in the response config (the
+    real box's contract).  Mirrors its validation: field exclusivity
+    and the ≥ 3 frames rule."""
+    import numpy as np
+    pb2, pb2_grpc, aux = std_pb
+
+    H, W = 280, 504   # the model's fixed output grid (the box's contract)
+
+    def poses(T: int, rng) -> np.ndarray:
+        m = np.zeros((T, 4, 4), dtype=np.float32)
+        m[:, 0, 0] = m[:, 1, 1] = m[:, 2, 2] = m[:, 3, 3] = 1.0
+        m[:, 0, 3] = rng.random(T)
+        m[:, 1, 3] = rng.random(T)
+        m[:, 2, 3] = 1.0 + rng.random(T)
+        return m
+
+    class FakeAbot(pb2_grpc.PipelineServiceServicer):
+        def Process(self, request, context):
+            cfg = json.loads(request.config_json) if request.config_json else {}
+            sc = cfg.get("abot_recon", {})
+            if sc.get("command") == "reset":
+                return pb2.Envelope(config_json=json.dumps(
+                    {"abot_recon": {"status": "done", "action": "reset"}}))
+            cmd = sc.get("command") or "reconstruct"
+            params = sc.get("parameters", {}) or {}
+            imgs = aux.unwrap_value(request.data.get("images")) if "images" in request.data else None
+            video = aux.unwrap_value(request.data.get("video")) if "video" in request.data else None
+            if imgs and video:
+                return pb2.Envelope(config_json=json.dumps(
+                    {"abot_recon": {"status": "error",
+                                    "error": "send either data.images or data.video, not both"}}))
+            if imgs:
+                frames = list(imgs)
+            elif video:
+                frames = [b"frame"] * 6          # the box would decode the video
+            else:
+                return pb2.Envelope(config_json=json.dumps(
+                    {"abot_recon": {"status": "empty_request"}}))
+            if len(frames) < 3:
+                return pb2.Envelope(config_json=json.dumps(
+                    {"abot_recon": {"status": "error",
+                                    "error": "at least 3 frames are required"}}))
+            T = min(len(frames), max(3, int(params.get("max_frames") or 256)))
+            stride = max(1, int(params.get("dense_stride") or 1))
+            Td = (T + stride - 1) // stride
+            enc = {"camera_poses": "numpy", "relative_poses": "numpy",
+                   "camera_poses_noloop": "numpy", "relative_poses_noloop": "numpy"}
+            if cmd == "reconstruct":
+                enc.update({"local_points": "numpy", "world_points": "numpy",
+                            "confidence": "numpy", "confidence_mask": "numpy"})
+            env = pb2.Envelope(config_json=json.dumps({
+                "abot_recon": {"status": "done", "command": cmd,
+                               "num_frames": T, "num_dense_frames": Td,
+                               "input_hw": [1080, 1920], "model_hw": [H, W],
+                               "runtime": 2.5, "device": "cuda",
+                               "encoding": enc}}))
+
+            def put(name: str, arr: np.ndarray):
+                buf = io.BytesIO()
+                np.save(buf, arr, allow_pickle=False)
+                env.data[name].CopyFrom(aux.wrap_value(buf.getvalue()))
+
+            rng = np.random.default_rng(3)
+            P = poses(T, rng)
+            rel = np.eye(4, dtype=np.float32)[None].repeat(T - 1, 0)
+            put("camera_poses", P)
+            put("camera_poses_noloop", P)
+            put("relative_poses", rel)
+            put("relative_poses_noloop", rel)
+            if cmd == "reconstruct":
+                # > 65 536 elements: the serializer's typed-buffer branch
+                # must engage (large maps must NOT degrade to pickle)
+                lm = rng.random((Td, H, W, 3)).astype(np.float32)
+                put("local_points", lm)
+                put("world_points", lm * 2.0)
+                conf = rng.random((Td, H, W)).astype(np.float32)
+                put("confidence", conf)
+                put("confidence_mask", conf > 0.5)
+            return env
+
+    return FakeBox(FakeAbot(), pb2, pb2_grpc)
+
+
 @pytest.fixture(autouse=True)
 def _cleanup_boxes():
     """Stop FakeBoxes created during this test (best-effort)."""

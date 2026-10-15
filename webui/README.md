@@ -33,6 +33,7 @@ so *adding a box = one YAML file*, never code.
 | textEmbedding (sbert) | ✅ | standard envelope |
 | vggt | ✅ | standard envelope (legacy flat config, supported via `flat_config`) |
 | yolo | ✅ | standard envelope; detection over images and/or a decoded video |
+| abot_recon | ✅ | standard envelope; streaming 3D reconstruction — `scene` view with `cameras_convention: camera_to_world`, `trajectory` renders the cameras-only scene |
 | **opencv_box** | ⏸ **no definition yet** | now a standard envelope box (`match` / `reset` on `Process`) — YAML definition still to be added |
 
 The skip is deliberate: the webui stays **contract-only** (one stub, `Process`,
