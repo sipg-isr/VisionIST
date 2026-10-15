@@ -12,7 +12,9 @@ docker compose ps
 
 | Box | Config key | Runtime | Host port | What it does |
 |---|---|---|---|---|
+| `abot_recon` | `abot_recon` | gpu | 9078 | ABot-Recon streaming 3D reconstruction - camera poses, adjacent relative poses and point maps from a video or a sequence of frames |
 | `clip` | `clip` | gpu | 9061 | CLIP image and text embeddings with their cross-modal similarity |
+| `colmap` | `colmap` | gpu-or-cpu | 9077 | COLMAP ground-truth SfM: camera poses + 3D points + intrinsics from plain images (incremental / GLOMAP global mappers) |
 | `d4rt` | `d4rt` | gpu | 9072 | OpenD4RT 4D reconstruction and tracking - 3D point tracks, point clouds and camera poses from a video |
 | `features` | `features` | cpu | 9071 | SIFT keypoints in the SIFT-Extractor layout: (2+128) x N, annotated JPEGs, MATLAB .mat |
 | `lang_sam` | `lang_sam` | gpu | 9064 | Text-guided segmentation with LangSAM: phrases in, masks out |

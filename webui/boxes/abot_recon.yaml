@@ -1,0 +1,100 @@
+# ABot-Recon box — streaming 3D reconstruction: camera poses + point maps, built
+# for LONG sequences (fixed local context, no growing long-range state).
+# Authoritative request shape:
+#   https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/abot_recon/README.md
+id: abot_recon
+name: "ABot-Recon · streaming 3D reconstruction"
+box_key: abot_recon
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/abot_recon/README.md
+note: >
+  A "deliberately local" ~1 B-parameter model: long videos are legal (no
+  persistent long-range state) and per-frame cost is fixed. Point maps always
+  come out on the model's fixed 280 × 504 grid — denser input buys
+  information, not output pixels. `trajectory` is the cheap verb (poses only,
+  no point maps): check a sequence there before paying for `reconstruct`.
+  Heavy on the wire (a dense frame ≈ 4 MB — keep max_frames / dense_stride
+  modest; the box caps its message at 1024 MB). One GPU, serial: the model
+  parks on CPU after ~120 s idle, so the first call after idle includes the
+  CPU→GPU move. CPU inference exists but is impractical at ~1.0 B parameters.
+
+inputs:
+  - field: images
+    widget: video_frames
+    kind: bb
+    multiple: true
+    required: false
+    helper: >
+      image files, or a video (mp4/avi/webm/mov) whose frames are extracted in
+      your browser. Send this OR the raw video field below, not both.
+  - field: video
+    widget: file_upload
+    kind: b
+    required: false
+    helper: a raw video file (mp4/avi/webm/mov) — decoded server-side
+
+command:
+  values: [reconstruct, trajectory, reset]
+  default: reconstruct
+
+parameters:
+  - key: max_frames
+    widget: number
+    min: 3
+    default: 256
+    placeholder: "cap on accepted frames (≥ 3; the stream cap is 22000 — raise knowingly)"
+  - key: frame_step
+    widget: number
+    min: 1
+    default: 1
+    placeholder: "keep every Nth frame while decoding"
+  - key: dense_stride
+    widget: number
+    min: 1
+    default: 1
+    placeholder: "reconstruct: save point maps every Nth frame (the trajectory stays full-rate)"
+  - key: confidence_threshold
+    widget: slider
+    min: 0.0
+    max: 1.0
+    step: 0.05
+    default: 0.0
+    placeholder: "reconstruct: mask points below this confidence (0 = keep all)"
+  - key: device
+    widget: select
+    values: ["cuda", "cpu"]
+    placeholder: "auto — unset; CPU runs but is impractical at ~1.0 B parameters"
+
+# The boolean parameters (loop_closure, output_local_points,
+# output_world_points, output_confidence) are deliberately NOT in the form:
+# the wire passes parameters raw, so a select's "false" string would read as
+# truthy on the box side (same rule as moge's fp16). Box defaults: all output
+# flags on, loop closure off — and the loop assets are not in the stock image.
+
+results:
+  # The 3D view, one scene per call:
+  #   reconstruct → the world point maps + camera frustums & path
+  #   trajectory  → the camera frustums & path only (no point maps)
+  # `cameras_convention` is declared data: this box hands out camera→world
+  # matrices (world→camera is the SceneView default, e.g. sfm/colmap).
+  - field: camera_poses
+    visualizer: scene
+    caption: "reconstruction — world point maps + camera path (orbit/zoom; first camera highlighted)"
+    params:
+      dense_points: world_points
+      cameras: camera_poses
+      cameras_convention: camera_to_world
+      image_size: [504, 280]   # [W, H] — the model's fixed 504 × 280 grid (frustum aspect)
+  - field: relative_poses
+    visualizer: tensor
+    caption: "adjacent relative poses, frame i → i + 1 ((T − 1, 4, 4))"
+  - field: world_points
+    visualizer: tensor
+    caption: "global point cloud — per-frame maps carried by the final trajectory ((Td, 280, 504, 3))"
+  - field: local_points
+    visualizer: tensor
+    caption: "per-frame point maps in each frame's camera frame — for one global cloud see the panel above"
+  - field: confidence
+    visualizer: tensor
+    caption: "per-pixel confidence ((Td, 280, 504)) + the thresholded mask (fallback panel)"
+  - field: "*"
+    visualizer: tensor
