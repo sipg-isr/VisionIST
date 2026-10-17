@@ -23,11 +23,7 @@ docker compose ps
 | `moge` | `moge` | cuda-only | 9067 | MoGe-3 monocular geometry: metric depth, point map, normals, intrinsics |
 | `open_clip` | `open_clip` | gpu-or-cpu | 9073 | OpenCLIP image and text embeddings from any open_clip model and pretrained tag, with cosine similarity and zero-shot probabilities |
 | `opencv` | `opencv` | gpu-or-cpu | 9065 | Classic feature extraction and matching: SIFT/ORB via FLANN, or SuperPoint/DISK via LightGlue, plus a RANSAC fundamental matrix |
-<<<<<<< Updated upstream
-| `phone` | `phone` | cpu | 9077 | A phone as a capture and annotation terminal: photos + labels in, results back, all polled over gRPC |
-=======
 | `phone` | `phone` | cpu | 9079 + web 9080 | A phone as a capture and annotation terminal: photos + labels in, results back, all polled over gRPC |
->>>>>>> Stashed changes
 | `pycv` | `pycv` | cpu | 9075 | Runs user-supplied Python against OpenCV - a script or a one-line expression in, named arrays out |
 | `sbert` | `sbert` | gpu-or-cpu | 9062 | Sentence-BERT text embeddings and their pairwise similarity |
 | `sfm` | `sfm` | cpu | 9074 | SfM: camera poses + 3D points from feature tracks and monocular depth, with partial (missing) tracks |
