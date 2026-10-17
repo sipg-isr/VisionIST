@@ -1,11 +1,27 @@
 {
   "entries": [
     {
+      "id": "abot_recon",
+      "name": "abot_recon",
+      "addr": "abot_recon:8061",
+      "def_id": "abot_recon",
+      "note": "ABot-Recon streaming 3D reconstruction - camera poses, adjacent relative poses and point maps from a video or a sequence of frames",
+      "last_probe": null
+    },
+    {
       "id": "clip",
       "name": "clip",
       "addr": "clip:8061",
       "def_id": "clip",
       "note": "CLIP image and text embeddings with their cross-modal similarity",
+      "last_probe": null
+    },
+    {
+      "id": "colmap",
+      "name": "colmap",
+      "addr": "colmap:8061",
+      "def_id": "colmap",
+      "note": "COLMAP ground-truth SfM: camera poses + 3D points + intrinsics from plain images (incremental / GLOMAP global mappers)",
       "last_probe": null
     },
     {

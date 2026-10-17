@@ -17,7 +17,11 @@ def reg():
 
 EXPECTED_IDS = {"clip", "tapnext", "lang_sam", "sbert", "vggt", "moge", "yolo",
                 "unimatch", "features", "opencv", "lightglue", "d4rt", "sfm",
+<<<<<<< Updated upstream
                 "mediapipe", "open_clip", "pycv", "colmap", "abot_recon"}
+=======
+                "open_clip", "pycv", "mediapipe", "phone"}
+>>>>>>> Stashed changes
 
 
 def test_all_defs_load(reg):
@@ -49,6 +53,7 @@ def test_clip(reg):
     assert any(p.key == "model" for p in d.parameters)
 
 
+<<<<<<< Updated upstream
 def test_colmap(reg):
     d = reg.get("colmap")
     assert d.box_key == "colmap"
@@ -64,6 +69,15 @@ def test_colmap(reg):
     assert {f.field for f in d.inputs} == {"images", "image_names"}
     scene = [r for r in d.results if r.visualizer == "scene"]
     assert scene and scene[0].params["colors"] == "point_colors"
+=======
+def test_phone_is_sessioned_and_needs_no_input(reg):
+    d = reg.get("phone")
+    assert d.box_key == "phone"
+    assert set(d.command.values) == {"get", "setup", "show", "status", "reset"}
+    assert d.command.default == "get"
+    assert d.session is not None and d.session.key == "session_id"
+    assert not any(f.required for f in d.inputs)   # get / setup / status carry no data
+>>>>>>> Stashed changes
 
 
 def test_tapnext_is_stateful_sessioned(reg):

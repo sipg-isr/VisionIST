@@ -12,7 +12,9 @@ docker compose ps
 
 | Box | Config key | Runtime | Host port | What it does |
 |---|---|---|---|---|
+| `abot_recon` | `abot_recon` | gpu | 9078 | ABot-Recon streaming 3D reconstruction - camera poses, adjacent relative poses and point maps from a video or a sequence of frames |
 | `clip` | `clip` | gpu | 9061 | CLIP image and text embeddings with their cross-modal similarity |
+| `colmap` | `colmap` | gpu-or-cpu | 9077 | COLMAP ground-truth SfM: camera poses + 3D points + intrinsics from plain images (incremental / GLOMAP global mappers) |
 | `d4rt` | `d4rt` | gpu | 9072 | OpenD4RT 4D reconstruction and tracking - 3D point tracks, point clouds and camera poses from a video |
 | `features` | `features` | cpu | 9071 | SIFT keypoints in the SIFT-Extractor layout: (2+128) x N, annotated JPEGs, MATLAB .mat |
 | `lang_sam` | `lang_sam` | gpu | 9064 | Text-guided segmentation with LangSAM: phrases in, masks out |
@@ -21,7 +23,11 @@ docker compose ps
 | `moge` | `moge` | cuda-only | 9067 | MoGe-3 monocular geometry: metric depth, point map, normals, intrinsics |
 | `open_clip` | `open_clip` | gpu-or-cpu | 9073 | OpenCLIP image and text embeddings from any open_clip model and pretrained tag, with cosine similarity and zero-shot probabilities |
 | `opencv` | `opencv` | gpu-or-cpu | 9065 | Classic feature extraction and matching: SIFT/ORB via FLANN, or SuperPoint/DISK via LightGlue, plus a RANSAC fundamental matrix |
+<<<<<<< Updated upstream
 | `phone` | `phone` | cpu | 9077 | A phone as a capture and annotation terminal: photos + labels in, results back, all polled over gRPC |
+=======
+| `phone` | `phone` | cpu | 9079 + web 9080 | A phone as a capture and annotation terminal: photos + labels in, results back, all polled over gRPC |
+>>>>>>> Stashed changes
 | `pycv` | `pycv` | cpu | 9075 | Runs user-supplied Python against OpenCV - a script or a one-line expression in, named arrays out |
 | `sbert` | `sbert` | gpu-or-cpu | 9062 | Sentence-BERT text embeddings and their pairwise similarity |
 | `sfm` | `sfm` | cpu | 9074 | SfM: camera poses + 3D points from feature tracks and monocular depth, with partial (missing) tracks |

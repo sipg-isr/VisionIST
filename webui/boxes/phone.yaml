@@ -1,0 +1,154 @@
+# phone box — a phone (browser) as a capture and annotation terminal.
+# Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/phone/README.md
+id: phone
+name: "Phone · capture and annotate"
+box_key: phone
+docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/phone/README.md
+input_mosaic: false
+note: >
+  The box has two faces: a web page a phone opens (live camera, label buttons,
+  send) and this gRPC call, which is how a program uses it. Pick a command.
+  setup states the whole page config and returns the pairing link (the token
+  is after the #) and a QR code; get polls what the phone captured (pass the
+  previous next_after as `after`; wait_s turns it into a long poll); show
+  pushes a result — text, an image, a .glb 3D model — back to the phone.
+  A running program normally does the polling: this console is for setting a
+  session up and for trying things by hand. Everything is held in the box's
+  memory and bounded; reply.dropped says how many submissions were missed.
+
+inputs:
+  - field: image
+    widget: image_upload
+    kind: b
+    required: false
+    constraint: "show only: a result image (JPEG, PNG or WebP) for the phone"
+  - field: glb
+    widget: file_upload
+    kind: b
+    required: false
+    constraint: "show only: a binary glTF (.glb) the phone shows as a rotatable 3D view"
+
+command:
+  values: [get, setup, show, status, reset]
+  default: get
+
+parameters:
+  # --- setup ---------------------------------------------------------------
+  - key: public_url
+    widget: tags
+    placeholder: "setup: external URL of the page, e.g. https://lab.example.org/phone (else the box's PUBLIC_URL)"
+  - key: title
+    widget: tags
+    placeholder: "setup: heading of the page · show: heading of the result card"
+  - key: labels
+    widget: tags
+    placeholder: "setup: one tap-to-toggle button per entry, e.g. door · valve · crack"
+  - key: mode
+    widget: select
+    values: [single, burst]
+    default: single
+    placeholder: "setup: burst = several photos sent together (e.g. views of one object for 3D)"
+  - key: burst_max
+    widget: number
+    min: 1
+    max: 64
+    step: 1
+    default: 8
+    placeholder: "setup: photos per burst"
+  - key: camera
+    widget: select
+    values: [environment, user]
+    default: environment
+    placeholder: "setup: environment = rear camera, user = front"
+  - key: max_side
+    widget: number
+    min: 0
+    max: 8192
+    step: 100
+    default: 1600
+    placeholder: "setup: the phone shrinks photos to this many px on the long side (0 = original)"
+  - key: sensors
+    widget: tags
+    placeholder: "setup: any of location · orientation · motion — attached to every photo"
+  - key: custom_labels
+    widget: select
+    values: ["false", "true"]
+    default: "false"
+    placeholder: "setup: let the person on the phone add labels"
+  - key: require_label
+    widget: select
+    values: ["false", "true"]
+    default: "false"
+    placeholder: "setup: refuse a photo with no label"
+  - key: rotate
+    widget: select
+    values: ["false", "true"]
+    default: "false"
+    placeholder: "setup: issue a new token (phones paired with the old one are refused)"
+  # --- get -----------------------------------------------------------------
+  - key: after
+    widget: number
+    min: 0
+    step: 1
+    default: 0
+    placeholder: "get: only submissions with seq above this — use the last reply's next_after"
+  - key: max_items
+    widget: number
+    min: 1
+    max: 64
+    step: 1
+    default: 8
+    placeholder: "get: most submissions per reply"
+  - key: wait_s
+    widget: number
+    min: 0
+    max: 20
+    step: 1
+    default: 0
+    placeholder: "get: wait up to this many seconds for a new photo (long poll)"
+  - key: latest
+    widget: select
+    values: ["false", "true"]
+    default: "false"
+    placeholder: "get: only the newest submission"
+  - key: pop
+    widget: select
+    values: ["false", "true"]
+    default: "false"
+    placeholder: "get: delete what is returned (default keeps it, so a retry gives the same answer)"
+  # --- show ----------------------------------------------------------------
+  - key: text
+    widget: tags
+    placeholder: "show: text of the result card"
+  - key: ref_seq
+    widget: number
+    min: 0
+    step: 1
+    placeholder: "show: the submission this answers (the card says Re #n)"
+  - key: replace
+    widget: select
+    values: ["false", "true"]
+    default: "false"
+    placeholder: "show: clear the phone's earlier results first"
+
+session:
+  key: session_id
+  auto_generate: false
+  actions: [reset]
+  note: >
+    One session pairs a program with its phones: its own page config, token,
+    capture queue and results feed. Leave empty for "default". reset with a
+    session id drops that session; without one it drops them all.
+
+results:
+  - field: images
+    visualizer: image_grid
+    caption: "get: the photos, submissions in order — meta says which belong to which"
+  - field: meta
+    visualizer: json
+    caption: "get: one entry per submission — seq, labels, note, device, sensors, n_images, first_image"
+  - field: qr
+    visualizer: image_grid
+    caption: "setup: scan with the phone to open the page already paired"
+  - field: "*"
+    visualizer: json

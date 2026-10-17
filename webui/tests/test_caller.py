@@ -33,6 +33,24 @@ def _put(store, b: bytes) -> str:
 
 # ------------------------------------------------------------------- layout
 
+def test_phone_get_needs_no_data_and_carries_the_session(reg, store):
+    spec = build_call(reg.get("phone"), CallRequest(
+        session_id="alice", parameters={"after": 4, "wait_s": 5}), store)
+    sec = spec.config["phone"]
+    assert sec["command"] == "get" and sec["session_id"] == "alice"
+    assert sec["parameters"]["after"] == 4 and sec["parameters"]["wait_s"] == 5
+    assert spec.data == {}
+
+
+def test_phone_show_sends_the_image_as_bytes(reg, store):
+    spec = build_call(reg.get("phone"), CallRequest(
+        command="show", data={"image": "@" + _put(store, b"jpg")},
+        parameters={"text": "two doors", "ref_seq": 3}), store)
+    assert spec.config["phone"]["command"] == "show"
+    assert spec.config["phone"]["parameters"]["ref_seq"] == 3
+    assert spec.data["image"] == b"jpg"
+
+
 def test_lang_sam_namespaced_layout(reg, store):
     spec = build_call(reg.get("lang_sam"), CallRequest(
         data={"images": [b"img1", b"img2"]},
