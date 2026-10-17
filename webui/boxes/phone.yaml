@@ -12,6 +12,10 @@ note: >
   is after the #) and a QR code; get polls what the phone captured (pass the
   previous next_after as `after`; wait_s turns it into a long poll); show
   pushes a result — text, an image, a .glb 3D model — back to the phone.
+  latest returns the newest frame (from the page's Stream button) or photo
+  with its labels, sensors and optional depth; after = the n you last saw
+  makes it a no-repeat poll. While streaming, the page shows the newest
+  result in one fixed panel under the camera.
   A running program normally does the polling: this console is for setting a
   session up and for trying things by hand. Everything is held in the box's
   memory and bounded; reply.dropped says how many submissions were missed.
@@ -29,7 +33,7 @@ inputs:
     constraint: "show only: a binary glTF (.glb) the phone shows as a rotatable 3D view"
 
 command:
-  values: [get, setup, show, status, reset]
+  values: [get, latest, setup, show, status, reset]
   default: get
 
 parameters:
@@ -69,7 +73,28 @@ parameters:
     placeholder: "setup: the phone shrinks photos to this many px on the long side (0 = original)"
   - key: sensors
     widget: tags
-    placeholder: "setup: any of location · orientation · motion — attached to every photo"
+    placeholder: "setup: any of location · orientation · motion · lidar — attached to every photo and frame (lidar from a web page only reports available=0)"
+  - key: stream_fps
+    widget: number
+    min: 0.2
+    max: 30
+    step: 1
+    default: 5
+    placeholder: "setup: frames per second the page's Stream button sends"
+  - key: stream_max_side
+    widget: number
+    min: 0
+    max: 8192
+    step: 80
+    default: 640
+    placeholder: "setup: streamed frames are shrunk to this many px on the long side (0 = original)"
+  - key: stream_quality
+    widget: number
+    min: 0.3
+    max: 1
+    step: 0.1
+    default: 0.7
+    placeholder: "setup: JPEG quality of streamed frames"
   - key: custom_labels
     widget: select
     values: ["false", "true"]
@@ -91,7 +116,7 @@ parameters:
     min: 0
     step: 1
     default: 0
-    placeholder: "get: only submissions with seq above this — use the last reply's next_after"
+    placeholder: "get: only submissions with seq above this — use the last reply's next_after · latest: only if the frame's n is above this — use the last reply's n"
   - key: max_items
     widget: number
     min: 1
@@ -105,7 +130,12 @@ parameters:
     max: 20
     step: 1
     default: 0
-    placeholder: "get: wait up to this many seconds for a new photo (long poll)"
+    placeholder: "get / latest: wait up to this many seconds for something new (long poll)"
+  - key: include_images
+    widget: select
+    values: ["true", "false"]
+    default: "true"
+    placeholder: "latest: false returns only the metadata (labels, sensors, age), no image or depth bytes"
   - key: latest
     widget: select
     values: ["false", "true"]
@@ -146,7 +176,10 @@ results:
     caption: "get: the photos, submissions in order — meta says which belong to which"
   - field: meta
     visualizer: json
-    caption: "get: one entry per submission — seq, labels, note, device, sensors, n_images, first_image"
+    caption: "get: one entry per submission — seq, labels, note, device, sensors, n_images, first_image · latest: one object — n, source, age_s, labels, sensors, size, depth"
+  - field: depth
+    visualizer: json
+    caption: "latest: raw depth map when the frame came with one (meta.depth gives width, height, dtype, unit)"
   - field: qr
     visualizer: image_grid
     caption: "setup: scan with the phone to open the page already paired"
