@@ -1,12 +1,17 @@
-# YOLO box — object detection AND tracking on images and videos.
+# YOLO box — detection, pose, segmentation, oriented boxes, classification.
 # Authoritative request shape: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/yolo/README.md
 id: yolo
-name: "YOLO · detection + tracking (images & video)"
+name: "YOLO · detect / pose / segment / obb / classify"
 box_key: yolo
 input_mosaic: false   # redundant: the annotated result IS the input (with boxes)
 docs: https://github.com/sipg-isr/VisionIST_Library/blob/main/boxes/yolo/README.md
 note: >
-  Tracking is always on: every detection carries a stable track id for
+  The command picks the TASK, and each task has its own default checkpoint —
+  pose needs a -pose model, segment a -seg one, and the box says so if you
+  pick a command the active checkpoint cannot do. Segmentation comes back as
+  polygons in frame pixels (full binary masks only with return_masks, which
+  is far heavier). classify is the one task that cannot be tracked.
+  For the other four, tracking is always on: every detection carries a stable track id for
   THIS console's session (the table has a track_id column, the annotated
   frames are labelled with ids). One call tracks over every frame you
   send. Send image files (or a video — frames are extracted in your
@@ -35,16 +40,20 @@ inputs:
       (see frame_step / max_frames). Send either this or images, not both.
 
 command:
-  # tracking is always on (ids follow the session), so "detect" carries the
-  # track ids too; "list" is the session-action view (see session.actions)
-  values: [detect, reset, list]
+  # the command IS the task. tracking is always on for the four
+  # detection-shaped ones; classify cannot be tracked at all.
+  # "list" is the session-action view (see session.actions)
+  values: [detect, pose, segment, obb, classify, reset, list]
   default: detect
 
 parameters:
   - key: weights
     widget: select
-    values: ["yolov8n.pt", "yolov8s.pt", "yolov8m.pt", "yolov11n.pt", "yolov11s.pt"]
-    default: "yolov8n.pt"
+    values: ["", "yolo26n.pt", "yolo26s.pt", "yolo26n-pose.pt", "yolo26n-seg.pt",
+             "yolo26n-obb.pt", "yolo26n-cls.pt", "yolov8n.pt", "yolov8s.pt",
+             "yolov8m.pt", "yolov11n.pt", "yolov11s.pt"]
+    default: ""
+    placeholder: "leave empty: each command uses its own default checkpoint"
     placeholder: "fresh checkpoints download on first use (see box README for paths/URLs)"
   - key: conf
     widget: slider
@@ -78,6 +87,16 @@ parameters:
     widget: number
     default: 128
     placeholder: "video: safety cap on decoded frames"
+  - key: return_masks
+    widget: select
+    values: ["false", "true"]
+    default: "false"
+    placeholder: "segment only: full binary masks as well as the polygons (much heavier)"
+  - key: nms
+    widget: select
+    values: ["", "false", "true"]
+    default: ""
+    placeholder: "false = YOLO26's NMS-free end-to-end head"
 
 session:
   key: session_id
@@ -110,8 +129,14 @@ results:
       filename: "yolo-annotations.zip"
   - field: detections
     visualizer: table
-    caption: "per-frame detections (boxes xyxy, class id, label, score, track id)"
+    caption: >-
+      per-frame records: boxes, labels, scores, track ids, and whichever of
+      keypoints / polygons / obb / classification the command produced
     params:
       filename: "yolo-detections.json"
+  # Dense masks are opt-in and arrive as a numpy stack per frame.
+  - field: masks
+    visualizer: tensor
+    caption: "segment + return_masks: (instances, H, W) binary masks per frame"
   - field: "*"
     visualizer: json
