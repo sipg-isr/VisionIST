@@ -26,3 +26,6 @@ webui/web/dist/
 webui/data/
 /data/
 fleet/data/*.bak
+
+# sample photos cached by notebooks/mediapipe_walkthrough.ipynb
+notebooks/samples/

@@ -84,6 +84,7 @@ has gaps rather than renumbered boxes, and adding a box moves nothing.
 | [`tools/make_fleet.py`](tools/make_fleet.py) | build a compose file from the registry |
 | [`docs/`](docs/) | architecture, quick start, the envelope reference, codecs |
 | [`notebooks/`](notebooks/) | a walkthrough of the fleet with the raw client |
+| [`applications/`](applications/) | scripts that put the boxes to work, starting with a live line-crossing counter for RTSP cameras |
 | [`protos/`](protos/) | the envelope, for reference — the source of truth is the Library's `contract/` |
 
 ## Key contracts

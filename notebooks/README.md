@@ -5,6 +5,14 @@ the local docker fleet: **yolo** detection on a video, **tapnext** point
 tracking + observation matrix, **lightglue** feature matching (rendered
 inline when you run it).
 
+`mediapipe_walkthrough.ipynb` is one box end to end: **hands** (21 landmarks,
+handedness, metric world landmarks), **pose** (33 landmarks, the lite/full/heavy
+bundles, per-joint visibility) and **face** (the 478-point mesh, blendshapes,
+the 4x4 transformation matrix), plus the two things callers get wrong - the
+padded `landmarks` array and its `counts`, and normalized vs pixel coordinates.
+Needs the box on port 9076 (`docker compose up -d mediapipe`) and, on first run,
+internet: it caches three sample photos into `notebooks/samples/`.
+
 Run it with the fleet up (`cd fleet && docker compose up -d`), boxes on
 their default host ports 9061–9069:
 
