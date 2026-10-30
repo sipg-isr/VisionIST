@@ -4,9 +4,10 @@
 This is notebooks/people_vehicle_crossings.ipynb turned into a live application:
 
     RTSP camera -> newest frame -> yolo box (detect + track) -> crossing counter
-                                        |                            |
-                                  detections.csv              annotated live window
-                            (updated after every frame)     (boxes, tracks, lines, counts)
+                                        |                         |            |
+                                  detections.csv           annotated live   detections_counts.csv
+                              (a row per detection,        window (boxes,   (a row per counted
+                               updated after every frame)  lines, counts)    crossing, with the totals)
 
 1. The first frame of the stream is shown and you click two points for each line
    segment: A (start) then B (end).  The arrow A->B is what "left" and "right" refer
@@ -15,6 +16,9 @@ This is notebooks/people_vehicle_crossings.ipynb turned into a live application:
 2. Every frame goes to the ``yolo`` box.  Its detections are appended to a CSV with the
    same columns as the notebook's ``detections.csv`` and flushed after every frame, so
    the file is always up to date (and the notebook's section 4 can recount it offline).
+   The counts go to a second CSV, ``<csv name>_counts.csv`` (``--counts-csv``): one row for every
+   crossing that is counted - when, which line, which direction, which class and track, and the totals of
+   that line afterwards - so the counts over time are in a file too, not just in the window.
 3. A track crosses a segment when the straight step between two consecutive positions
    cuts the finite segment.  Counts are distinct tracks per segment, direction and class
    group (person / vehicle) - the notebook's rules, computed incrementally:
@@ -59,9 +63,11 @@ GROUP_OF = {**{COCO_NAMES[i]: "person" for i in PERSON_IDS},       # label -> "p
             **{COCO_NAMES[i]: "vehicle" for i in VEHICLE_IDS}}
 DIRECTIONS = ("left_to_right", "right_to_left")
 
-# ---- the CSV: the notebook's columns --------------------------------------------------------------
+# ---- the CSVs: the notebook's columns, and one row per counted crossing ----------------------------
 COLUMNS = ["timestamp", "t", "camera", "frame", "track_id", "class_id", "label", "score",
            "x1", "y1", "x2", "y2", "width", "height"]
+COUNT_COLUMNS = ["timestamp", "t", "camera", "frame", "line", "direction", "group", "label", "track_id", "x", "y",
+                 "person_left_to_right", "person_right_to_left", "vehicle_left_to_right", "vehicle_right_to_left"]
 
 # ---- tracking / drawing constants -----------------------------------------------------------------
 ID_STRIDE = 10 ** 9         # track ids of a new tracker session are offset by this (see YoloDetector)
@@ -271,7 +277,8 @@ class CrossingCounter:
     def update(self, t, detections):
         """One frame: ``t`` is its time (epoch s), ``detections`` as from parse_detections().
         Returns the crossings that have just become countable, as dicts with
-        segment, direction, t, x, y, track_id, label, group."""
+        segment, direction, t, x, y, track_id, label, group and first (True when this is the first time
+        the track crosses this segment in this direction: only those add to the counts)."""
         announced = []
         for d in detections:
             if d["tid"] < 0 or d["label"] not in GROUP_OF:     # unconfirmed by the tracker / not a person or vehicle
@@ -292,8 +299,9 @@ class CrossingCounter:
                     s = ((px - a[0]) * (b[0] - a[0]) + (py - a[1]) * (b[1] - a[1])) / self._len2[k]
                     if 0.0 <= s <= 1.0:                        # inside the finite segment
                         direction = "left_to_right" if s1 > 0 else "right_to_left"
+                        first = (k, direction) not in tr.crossed        # False: this track already counted here
                         tr.crossed.add((k, direction))
-                        tr.pending.append(dict(segment=k, direction=direction, x=px, y=py,
+                        tr.pending.append(dict(segment=k, direction=direction, x=px, y=py, first=first,
                                                t=tr.last_t + u * (t - tr.last_t)))
             tr.labels[d["label"]] += 1
             tr.n += 1
@@ -336,10 +344,10 @@ class CrossingCounter:
 # The CSV
 # =================================================================================================
 class CsvLog:
-    """The detections CSV, flushed after every frame.  An existing file is kept under a time-stamped
-    name (or continued, with append=True)."""
+    """A CSV that is flushed after every write (the detections, and the counted crossings).  An existing
+    file is kept under a time-stamped name (or continued, with append=True)."""
 
-    def __init__(self, path, append=False):
+    def __init__(self, path, append=False, columns=COLUMNS):
         has_data = os.path.exists(path) and os.path.getsize(path) > 0
         if has_data and not append:
             stem, ext = os.path.splitext(path)
@@ -351,7 +359,7 @@ class CsvLog:
         self._f = open(path, "a", newline="")
         self._w = csv.writer(self._f)
         if not has_data:
-            self._w.writerow(COLUMNS)
+            self._w.writerow(columns)
             self._f.flush()
 
     def write_frame(self, rows):
@@ -360,6 +368,23 @@ class CsvLog:
 
     def close(self):
         self._f.close()
+
+
+def count_rows(events, counts, camera, frame_no):
+    """The counts CSV: one row per counted crossing (a track that crosses the same segment the same way
+    again is not counted again, so it has no row), in the order they became countable, which can differ
+    from the order of ``t`` by a moment.  ``t`` is when the track met the line; the last four columns are
+    the totals of that segment after this frame, so the last row of a segment is its count."""
+    rows = []
+    for ev in events:
+        if not ev["first"]:
+            continue
+        k = ev["segment"]
+        stamp = dt.datetime.fromtimestamp(ev["t"], dt.timezone.utc).isoformat(timespec="milliseconds")
+        rows.append([stamp, round(ev["t"], 3), camera, frame_no, k + 1, ev["direction"], ev["group"], ev["label"],
+                     ev["track_id"], round(ev["x"], 1), round(ev["y"], 1),
+                     *(counts[(k, g, d)] for g in ("person", "vehicle") for d in DIRECTIONS)])
+    return rows
 
 
 def csv_rows(rec, detections, camera, frame_no, t, frame_shape):
@@ -558,7 +583,9 @@ def parse_args(argv=None):
     p.add_argument("--segments-file", default="segments.json", help="where the clicked segments are saved [%(default)s]")
     p.add_argument("--reuse-segments", action="store_true", help="read the segments from --segments-file instead of clicking")
     p.add_argument("--csv", default="detections.csv", help="detections CSV, updated after every frame [%(default)s]")
-    p.add_argument("--append", action="store_true", help="continue an existing CSV (default: keep it under a time-stamped name)")
+    p.add_argument("--counts-csv", default=None,
+                   help="counts CSV, one row per counted crossing [<--csv name>_counts.csv]")
+    p.add_argument("--append", action="store_true", help="continue existing CSVs (default: keep them under a time-stamped name)")
     p.add_argument("--fps", type=float, default=5.0, help="frames per second sent to the box [%(default)s]")
     p.add_argument("--conf", type=float, default=0.30, help="minimum detection confidence [%(default)s]")
     p.add_argument("--weights", default=None, help="checkpoint for the box (default: the box's COCO model)")
@@ -576,6 +603,10 @@ def parse_args(argv=None):
     args.url = args.url or os.environ.get("RTSP_URL")
     if not args.url:
         p.error("give the RTSP URL as an argument or in $RTSP_URL")
+    if not args.counts_csv:
+        args.counts_csv = os.path.splitext(args.csv)[0] + "_counts.csv"
+    if os.path.abspath(args.counts_csv) == os.path.abspath(args.csv):
+        p.error("--counts-csv and --csv are the same file")
     if args.no_display and not args.reuse_segments:
         p.error("--no-display needs --reuse-segments: there is nowhere to click")
     if args.reuse_segments and not os.path.exists(args.segments_file):
@@ -601,7 +632,7 @@ def main(argv=None):
         reader = RTSPReader(args.camera, args.url)
     except RuntimeError as e:
         sys.exit(str(e))
-    log = detector = counter = None
+    log = clog = detector = counter = None
     n_frames = n_errors = 0
     t_start = time.time()
     try:
@@ -624,10 +655,12 @@ def main(argv=None):
         detector = YoloDetector(args.yolo, f"{run_id}-{args.camera}", args.conf, args.weights,
                                 args.jpeg_quality, args.timeout)
         log = CsvLog(args.csv, args.append)
+        clog = CsvLog(args.counts_csv, args.append, COUNT_COLUMNS)
         win = "VisionIST - line crossing counter"
         if show:
             cv2.namedWindow(win, cv2.WINDOW_AUTOSIZE)
-        print(f"counting; detections go to {args.csv}; " + ("press q in the window to stop" if show else "Ctrl-C to stop"))
+        print(f"counting; detections go to {args.csv}, counted crossings to {args.counts_csv}; "
+              + ("press q in the window to stop" if show else "Ctrl-C to stop"))
 
         period = 1.0 / args.fps
         last_seq, last_new, stalled = -1, time.time(), False
@@ -669,10 +702,13 @@ def main(argv=None):
             if rec is not None:
                 n_frames += 1
                 log.write_frame(csv_rows(rec, dets, args.camera, n_frames, t, frame.shape))
-                for ev in counter.update(t, dets):
+                events = counter.update(t, dets)
+                if events:
+                    clog.write_frame(count_rows(events, counter.counts(), args.camera, n_frames))
+                for ev in events:
                     when = dt.datetime.fromtimestamp(ev["t"]).strftime("%H:%M:%S")
                     print(f"{when}  line {ev['segment'] + 1}: {ev['label']} #{ev['track_id']} "
-                          f"{ev['direction']}")
+                          f"{ev['direction']}" + ("" if ev["first"] else "  (again, not counted)"))
             if prev_t0 is not None:
                 inst = 1.0 / max(t0 - prev_t0, 1e-6)
                 fps = inst if fps is None else 0.8 * fps + 0.2 * inst
@@ -688,8 +724,9 @@ def main(argv=None):
     except KeyboardInterrupt:
         print("\nstopped")
     finally:
-        if log is not None:
-            log.close()
+        for f in (log, clog):
+            if f is not None:
+                f.close()
         if detector is not None:
             detector.close()
         reader.close()
@@ -698,7 +735,8 @@ def main(argv=None):
             cv2.waitKey(1)
     elapsed = time.time() - t_start
     print(f"{elapsed:.0f} s, {n_frames} frames ({n_frames / max(elapsed, 1e-9):.1f}/s), {n_errors} box errors"
-          + (f", detections in {log.path}" if log is not None else ""))
+          + (f", detections in {log.path}" if log is not None else "")
+          + (f", counted crossings in {clog.path}" if clog is not None else ""))
     if counter is not None:
         print("\n".join(summary_lines(counter)))
     return 0

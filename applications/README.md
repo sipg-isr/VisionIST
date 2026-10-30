@@ -12,6 +12,7 @@ cd ../fleet && docker compose up -d yolo   # the box the first application needs
 | script | what it does | box |
 |---|---|---|
 | [`line_crossing_counter.py`](line_crossing_counter.py) | counts the people and vehicles that cross a line in an RTSP camera stream, live | yolo |
+| [`rtsp_probe.py`](rtsp_probe.py) | shows what an RTSP camera really sends (codec, fps, key frames, jitter, what time information it carries) and whether several streams can be synchronized | none |
 
 ## line_crossing_counter.py
 
@@ -66,3 +67,29 @@ the CSV offline and give the same numbers.
 - The password of the URL is never printed. Prefer `$RTSP_URL` to the argument, which shows in `ps`.
 - `--rtsp-transport udp` has less delay than `tcp` but drops packets; `--duration S` stops after S seconds.
 - Run it from a desktop session: the windows need a display (`--no-display` with `--reuse-segments` does not).
+
+## rtsp_probe.py
+
+Read this before trying to synchronize cameras: it tells you what the cameras can give. It plays one or
+more RTSP streams **at the same time** over TCP (Python 3.9+, standard library only, nothing to install) and
+prints, for each:
+
+- the codec, picture size, frame rate (measured and as declared), key-frame interval, bit rate, B-frames, lost packets;
+- how steadily the frames arrive (jitter), and how much later key frames arrive;
+- **what time information the stream carries**: RTCP sender reports (the standard way to learn the
+  wall-clock time of a frame - without them the stream has no absolute time), an RFC 7273 clock declaration
+  in the SDP, an RTP header extension, SEI messages, and whether the RTP timeline starts at PLAY;
+- how fast each stream's clock runs against this computer's, in ppm, and, with several URLs, against the other streams.
+
+```bash
+python rtsp_probe.py rtsp://admin:CODE@host:554/Streaming/channels/101 --seconds 30 --ports
+python rtsp_probe.py rtsp://admin:CODE@host:554/Streaming/channels/101 \
+                     rtsp://admin:CODE@host:554/Streaming/channels/201 --seconds 300 --json probe.json
+RTSP_USER=admin RTSP_PASSWORD=CODE python rtsp_probe.py rtsp://host:554/Streaming/channels/101
+```
+
+- Two streams that come from **one clock** show no rate difference; two clocks drift apart by tens of ppm
+  (a few ms per minute). The error of that number falls fast with time (about 1/t^1.5): ±10 ppm needs a few minutes.
+- With B-frames the RTP time is the display time and the clock and jitter figures are unreliable; the probe says so.
+- `--ports` tries the usual camera ports, `--isapi` a few read-only Hikvision-style HTTP GETs, `--sdp` prints the raw SDP.
+- It only reads (OPTIONS, DESCRIBE, SETUP, PLAY, TEARDOWN). The password is never printed. The exit status is 1 if a stream failed.

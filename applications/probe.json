@@ -1,0 +1,209 @@
+{
+ "urls": [
+  "rtsp://***@costeiras.ddnsfree.com:554/Streaming/channels/101",
+  "rtsp://***@costeiras.ddnsfree.com:554/Streaming/channels/201"
+ ],
+ "seconds": 300.0,
+ "streams": [
+  {
+   "label": "1",
+   "error": null,
+   "info": {
+    "connect_ms": 134,
+    "options_status": 200,
+    "methods": "OPTIONS, DESCRIBE, PLAY, PAUSE, SETUP, TEARDOWN, SET_PARAMETER, GET_PARAMETER",
+    "server": "",
+    "auth": "Digest (realm '64244d555cac')",
+    "content_base": "rtsp://costeiras.ddnsfree.com:554/Streaming/channels/101/",
+    "play_range": null,
+    "rtp_info": "url=rtsp://costeiras.ddnsfree.com:554/Streaming/channels/101/trackID=1;seq=6213;rtptime=655347885,url=rtsp://costeiras.ddnsfree.com:554/Streaming/channels/101/trackID=2;seq=24543;rtptime=264989478"
+   },
+   "tracks": [
+    {
+     "kind": "video",
+     "codec": "H265",
+     "clock_hz": 90000,
+     "packets": 43937,
+     "seq_gaps": 0,
+     "seconds": 300.0,
+     "kbit_per_s": 1304.7,
+     "frames": 1737,
+     "resolution": "2304x1296",
+     "profile_level": "1/150",
+     "sps_fps": null,
+     "sps_source": "stream",
+     "rtp_ts0": 638030200,
+     "rtp_info": [
+      6213,
+      655347885
+     ],
+     "ssrc": [
+      "2e6c7501"
+     ],
+     "header_extension": null,
+     "header_extension_sample": null,
+     "nal_types": {
+      "1": 1679,
+      "19": 58,
+      "32": 58,
+      "33": 58,
+      "34": 58
+     },
+     "sei_sample": null,
+     "repeated_timestamps": 0,
+     "fps": 5.784,
+     "nominal_fps": 5.002,
+     "frame_step_ms": {
+      "min": 66.6,
+      "median": 199.93,
+      "max": 666.64
+     },
+     "b_frame_reordering": null,
+     "key_every_frames": 1,
+     "key_every_s": 0.67,
+     "key_frame_kB": 268.4,
+     "other_frame_kB": 19.9,
+     "key_frames": 58,
+     "clock_vs_computer_ppm": -80.2,
+     "clock_vs_computer_ppm_se": 15.5,
+     "arrival_jitter_ms": {
+      "std": 55.9,
+      "p95": 123.7,
+      "max": 532.0
+     },
+     "key_frame_extra_delay_ms": -0.6,
+     "first_frame_arrival_s": 0.355,
+     "rtcp_sender_reports": 0,
+     "rtcp_cname": null
+    },
+    {
+     "kind": "audio",
+     "codec": "MPEG4-GENERIC",
+     "clock_hz": 16000,
+     "packets": 4673,
+     "seq_gaps": 0,
+     "seconds": 300.0,
+     "kbit_per_s": 31.5,
+     "frames": 4673,
+     "rtp_ts0": 876978232,
+     "rtp_info": [
+      24543,
+      264989478
+     ],
+     "ssrc": [
+      "28d02197"
+     ],
+     "header_extension": null,
+     "header_extension_sample": null,
+     "nal_types": null,
+     "sei_sample": null,
+     "repeated_timestamps": 0,
+     "fps": 15.565,
+     "nominal_fps": 15.625,
+     "frame_step_ms": {
+      "min": 63.0,
+      "median": 64.0,
+      "max": 192.0
+     },
+     "b_frame_reordering": null,
+     "key_frames": 0,
+     "clock_vs_computer_ppm": 10.6,
+     "clock_vs_computer_ppm_se": 3.3,
+     "arrival_jitter_ms": {
+      "std": 19.6,
+      "p95": 24.2,
+      "max": 551.3
+     },
+     "first_frame_arrival_s": 0.405,
+     "rtcp_sender_reports": 0,
+     "rtcp_cname": null
+    }
+   ]
+  },
+  {
+   "label": "2",
+   "error": null,
+   "info": {
+    "connect_ms": 131,
+    "options_status": 200,
+    "methods": "OPTIONS, DESCRIBE, PLAY, PAUSE, SETUP, TEARDOWN, SET_PARAMETER, GET_PARAMETER",
+    "server": "",
+    "auth": "Digest (realm '64244d555cac')",
+    "content_base": "rtsp://costeiras.ddnsfree.com:554/Streaming/channels/201/",
+    "play_range": null,
+    "rtp_info": "url=rtsp://costeiras.ddnsfree.com:554/Streaming/channels/201/trackID=1;seq=43628;rtptime=1916418365"
+   },
+   "tracks": [
+    {
+     "kind": "video",
+     "codec": "H265",
+     "clock_hz": 90000,
+     "packets": 34844,
+     "seq_gaps": 0,
+     "seconds": 300.0,
+     "kbit_per_s": 1028.0,
+     "frames": 1737,
+     "resolution": "2304x1296",
+     "profile_level": "1/150",
+     "sps_fps": null,
+     "sps_source": "stream",
+     "rtp_ts0": 638033192,
+     "rtp_info": [
+      43628,
+      1916418365
+     ],
+     "ssrc": [
+      "3444d226"
+     ],
+     "header_extension": null,
+     "header_extension_sample": null,
+     "nal_types": {
+      "1": 1680,
+      "19": 58,
+      "32": 58,
+      "33": 58,
+      "34": 58,
+      "48": 1
+     },
+     "sei_sample": null,
+     "repeated_timestamps": 0,
+     "fps": 5.787,
+     "nominal_fps": 5.002,
+     "frame_step_ms": {
+      "min": 66.6,
+      "median": 199.91,
+      "max": 666.71
+     },
+     "b_frame_reordering": null,
+     "key_every_frames": 1,
+     "key_every_s": 0.67,
+     "key_frame_kB": 289.0,
+     "other_frame_kB": 13.0,
+     "key_frames": 58,
+     "clock_vs_computer_ppm": 509.6,
+     "clock_vs_computer_ppm_se": 33.5,
+     "arrival_jitter_ms": {
+      "std": 120.8,
+      "p95": 243.4,
+      "max": 379.5
+     },
+     "key_frame_extra_delay_ms": -6.2,
+     "first_frame_arrival_s": 0.352,
+     "rtcp_sender_reports": 0,
+     "rtcp_cname": null
+    }
+   ]
+  }
+ ],
+ "ports": {
+  "80": false,
+  "443": false,
+  "554": true,
+  "8000": false,
+  "8080": false,
+  "8443": false,
+  "8554": false,
+  "9010": false,
+  "9020": false
+ }
+}
