@@ -12,6 +12,7 @@ cd ../fleet && docker compose up -d yolo   # the box the first application needs
 | script | what it does | box |
 |---|---|---|
 | [`line_crossing_counter.py`](line_crossing_counter.py) | counts the people and vehicles that cross a line in an RTSP camera stream, live | yolo |
+| [`crossing_counter.html`](crossing_counter.html) | a one-file viewer for what the counter recorded: open the detections CSV of a camera (or a whole folder of them), draw lines on its picture and see the people and vehicles that crossed each line, in both directions, over time | none (open it in a browser) |
 | [`rtsp_probe.py`](rtsp_probe.py) | shows what an RTSP camera really sends (codec, fps, key frames, jitter, what time information it carries) and whether several streams can be synchronized | none |
 
 ## line_crossing_counter.py
@@ -23,7 +24,7 @@ camera image with the annotations and the current counts.
 
 ```bash
 python line_crossing_counter.py rtsp://user:password@192.168.1.101:554/stream1
-python line_crossing_counter.py $URL --segments 2 --fps 5 --csv gate.csv      # two lines
+python line_crossing_counter.py $URL --segments 2 --fps 5 --csv gate.csv      # two lines: gate.csv and gate_counts.csv
 RTSP_URL=$URL python line_crossing_counter.py --reuse-segments --no-display   # unattended
 ```
 
@@ -43,6 +44,27 @@ flushed, so it is always up to date and survives the script being killed. A fram
 An existing file is kept under a time-stamped name, or continued with `--append`. The first image
 is saved beside it as `detections_cam1.jpg`, so the notebook's sections 3 and 4 can recount
 the CSV offline and give the same numbers.
+
+**The counts CSV.** `detections_counts.csv` (`--counts-csv`, by default the name of `--csv` plus
+`_counts`) gets **one row for every counted crossing**, also flushed at once:
+
+| column | meaning |
+|---|---|
+| `timestamp`, `t` | when the track met the line (UTC, ISO 8601 with milliseconds; epoch seconds) |
+| `camera`, `frame` | `--camera`, and the number of the frame in which the crossing became countable |
+| `line` | the segment, numbered from 1 as in the window |
+| `direction` | `left_to_right` or `right_to_left`, standing at A and looking at B |
+| `group`, `label` | `person` or `vehicle`, and the label of the track (`car`, `truck`, ...) |
+| `track_id` | the same id as in the detections CSV, so a crossing can be looked up there |
+| `x`, `y` | where the track met the line, in image pixels |
+| `person_left_to_right`, `person_right_to_left`, `vehicle_left_to_right`, `vehicle_right_to_left` | the totals of that line after this frame; the last row of a line holds its final counts |
+
+A track that crosses the same line the same way again is not counted again and has no row. Rows
+are in the order the crossings became countable, which can differ from the order of `t` by a moment
+(a crossing made in the first frames of a track is counted once the track has `--min-points`
+detections), so sort by `t` before plotting. With `--append` the totals start from 0 again at every
+run: add the rows of the runs instead of reading the totals. Counting the rows per
+minute or hour, by `line`, `group` and `direction`, gives the counts over time.
 
 **How it counts** (the notebook's rules, applied frame by frame):
 
@@ -67,6 +89,27 @@ the CSV offline and give the same numbers.
 - The password of the URL is never printed. Prefer `$RTSP_URL` to the argument, which shows in `ps`.
 - `--rtsp-transport udp` has less delay than `tcp` but drops packets; `--duration S` stops after S seconds.
 - Run it from a desktop session: the windows need a display (`--no-display` with `--reuse-segments` does not).
+
+## crossing_counter.html
+
+Open it in a browser (it is one file, nothing to install, and nothing leaves your computer). It works on
+**one camera at a time**:
+
+1. **Open CSV files…** or **Open folder…** (or drop them on the page). Every detections CSV is listed with its
+   camera, its time span (Lisbon time) and its size; click the one to show. Files with no rows and the
+   `_counts.csv` files are listed but cannot be opened. A big file takes a few seconds (622 MB: about 4 s).
+2. Draw lines on the camera picture (drag; drag a handle to change a line). The picture is the
+   `<csv name>_<camera>.jpg` that `line_crossing_counter.py` saves next to the CSV; **Add picture…** puts another
+   one, and the page remembers it.
+3. Each line gets a card with the vehicles and the people that crossed it *with the arrow* and *against it*,
+   per bin of time (10 s to 2 h, depending on how long the recording is), above a timeline of the whole recording.
+   Drag across a timeline to zoom.
+
+The lines come from a `segments.json` in the same folder as the CSV (put it there, or select it together with the
+CSV), otherwise from the last recording of the same camera. They are the notebook's `segments.json` (**Save lines**
+writes the same format; call the file `segments.json` to use the lines with `--reuse-segments`). **Save counts (CSV)** writes the
+counts per line and bin. The counting rules are the notebook's, applied to every detection of the file.
+The first row of the list is a built-in example (one day of cam1), so the page works with no files.
 
 ## rtsp_probe.py
 
